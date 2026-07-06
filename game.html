@@ -203,4 +203,34 @@ if (myRoomId) {
         if (joinBtn) joinBtn.click();
     }, 1000);
 }
+</script><!-- ボタンを動かすための設定を追加 -->
+<script type="module">
+  import { Handlers } from './game.js';
+  
+  // 画面が読み込まれたら、ボタンに機能を覚えさせる
+  document.addEventListener('DOMContentLoaded', () => {
+    // 「コード生成」ボタンを見つけて、押されたら部屋コードを作るようにする
+    const generateBtn = document.querySelector('button[onclick*="generateRoomCode"], button:contains("コード生成")') || document.querySelectorAll('button')[0]; 
+    if (generateBtn) {
+      generateBtn.removeAttribute('onclick'); // 古い命令を消す
+      generateBtn.addEventListener('click', () => {
+        Handlers.onStartVersus();
+      });
+    }
+  });
+</script><!-- ボタンを動かすための設定を追加 -->
+<script type="module">
+  import { Handlers } from './game.js';
+  
+  // 画面が読み込まれたら、ボタンに機能を覚えさせる
+  document.addEventListener('DOMContentLoaded', () => {
+    // 「コード生成」ボタンを見つけて、押されたら部屋コードを作るようにする
+    const generateBtn = document.querySelector('button[onclick*="generateRoomCode"], button:contains("コード生成")') || document.querySelectorAll('button')[0]; 
+    if (generateBtn) {
+      generateBtn.removeAttribute('onclick'); // 古い命令を消す
+      generateBtn.addEventListener('click', () => {
+        Handlers.onStartVersus();
+      });
+    }
+  });
 </script></html>
