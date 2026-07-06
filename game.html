@@ -1,155 +1,173 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poke Guesser - 対戦ロビー</title>
-    <style>
-        body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .vlobby-card {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 90%;
-            text-align: center;
-        }
-        h2 { color: #333; margin-bottom: 20px; }
-        h4 { margin: 10px 0; color: #444; }
-        p { color: #666; font-size: 0.9rem; }
-        .vlobby-code-box {
-            margin: 20px 0; padding: 15px;
-            background: #fff0f1; border-radius: 8px;
-        }
-        #vs-my-code {
-            font-size: 2.5rem; font-weight: bold;
-            letter-spacing: 4px; color: #ff5a5f;
-        }
-        button {
-            width: 100%; padding: 12px;
-            font-size: 1rem; font-weight: bold;
-            border-radius: 6px; border: none;
-            cursor: pointer; transition: background 0.2s;
-        }
-        #vs-create { background: #ff5a5f; color: white; }
-        #vs-create:hover { background: #e0484c; }
-        input {
-            font-size: 1.5rem; padding: 10px; width: 80%;
-            text-align: center; border: 2px solid #ddd;
-            border-radius: 6px; margin-bottom: 15px;
-        }
-        #vs-join { background: #333; color: white; }
-        #vs-join:hover { background: #222; }
-        hr { margin: 30px 0; border: 0; border-top: 1px dashed #ccc; }
-
-        /* クイズ画面のスタイル */
-        .hidden { display: none !important; }
-        .quiz-area { text-align: center; width: 100%; max-width: 500px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
-        .quiz-image-placeholder { width: 200px; height: 200px; background: #ddd; margin: 20px auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 4rem; color: #aaa; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poke Guesser - 対戦ロビー</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .vlobby-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); max-width: 400px; width: 90%; text-align: center; }
+    h2 { color: #333; margin-bottom: 20px; }
+    h4 { margin: 10px 0; color: #444; }
+    p { color: #666; font-size: 0.9rem; }
+    .vlobby-code-box { margin: 20px 0; padding: 15px; background: #fff0f1; border-radius: 8px; }
+    #vs-my-code { font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: #ff5a5f; }
+    button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s; }
+    #vs-create { background: #ff5a5f; color: white; }
+    #vs-create:hover { background: #e0484c; }
+    input { font-size: 1.5rem; padding: 10px; width: 80%; text-align: center; border: 2px solid #ddd; border-radius: 6px; margin-bottom: 15px; }
+    #vs-join { background: #333; color: white; }
+    #vs-join:hover { background: #222; }
+    hr { margin: 30px 0; border: 0; border-top: 1px dashed #ccc; }
+    
+    /* クイズ画面のスタイル */
+    .hidden { display: none !important; }
+    .quiz-area { text-align: center; width: 100%; max-width: 500px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+    
+    /* ★本家のように画像を黒いシルエットにするスタイル */
+    .quiz-image-box { width: 200px; height: 200px; margin: 20px auto; display: flex; justify-content: center; align-items: center; }
+    .quiz-image { max-width: 100%; max-height: 100%; filter: brightness(0); } /* 最初は真っ黒 */
+    .quiz-image.reveal { filter: none; } /* 正解・不正解時に色を戻す */
+  </style>
 </head>
 <body>
 
-    <!-- 1. ロビー画面（最初の画面） -->
-    <div id="lobby-screen" class="vlobby-card">
-        <h2>対戦モード (カスタム)</h2>
-        
-        <section class="vlobby-panel vlobby-create">
-            <h4>ルームを作成</h4>
-            <p>表示されたコードを友達に共有してください</p>
-            <div class="vlobby-code-box">
-                <span id="vs-my-code">------</span>
-            </div>
-            <button id="vs-create">コード生成</button>
-        </section>
-        
-        <hr>
-        
-        <section class="vlobby-panel vlobby-join">
-            <h4>ルームに参加</h4>
-            <p>友達のコード（数字6桁）を入力してください</p>
-            <input id="vs-code" inputmode="numeric" maxlength="6" placeholder="123456">
-            <button id="vs-join">参加する</button>
-        </section>
+  <!-- 1. ロビー画面 -->
+  <div id="lobby-screen" class="vlobby-card">
+    <h2>対戦モード (カスタム)</h2>
+    <section class="vlobby-panel vlobby-create">
+      <h4>ルームを作成</h4>
+      <p>表示されたコードを友達に共有してください</p>
+      <div class="vlobby-code-box">
+        <span id="vs-my-code">------</span>
+      </div>
+      <button id="vs-create">コード生成</button>
+    </section>
+    <hr>
+    <section class="vlobby-panel vlobby-join">
+      <h4>ルームに参加</h4>
+      <p>友達のコード（数字6桁）を入力してください</p>
+      <input id="vs-code" inputmode="numeric" maxlength="6" placeholder="123456">
+      <button id="vs-join">参加する</button>
+    </section>
+  </div>
+
+  <!-- 2. クイズ対戦画面 -->
+  <div id="game-screen" class="quiz-area hidden">
+    <h2>対戦スタート！</h2>
+    <p>このポケモンの名前を当ててください！</p>
+    
+    <!-- ★❓マークの代わりに画像が表示されるように変更 -->
+    <div class="quiz-image-box">
+      <img id="pokemon-img" class="quiz-image" src="" alt="ポケモン">
     </div>
 
-    <!-- 2. クイズ対戦画面（移行先の画面） -->
-    <div id="game-screen" class="quiz-area hidden">
-        <h2>対戦スタート！</h2>
-        <p>このポケモンの名前を当ててください！</p>
-        <div class="quiz-image-placeholder">❓</div>
-        <div style="margin: 20px 0;">
-            <input id="guess-input" style="width: 80%; font-size: 1.2rem; padding: 10px; border: 2px solid #ccc; border-radius: 6px;" placeholder="ポケモンのなまえを入力">
-        </div>
-        <button id="guess-button" style="background: #4caf50; color: white; font-size: 1.2rem;">回答する (GUESS)</button>
+    <div style="margin: 20px 0;">
+      <input id="guess-input" style="width: 80%; font-size: 1.2rem; padding: 10px; border: 2px solid #ccc; border-radius: 6px;" placeholder="カタカナで入力してね">
     </div>
+    <button id="guess-button" style="background: #4caf50; color: white; font-size: 1.2rem;">回答する (GUESS)</button>
+  </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const createBtn = document.getElementById('vs-create');
-            const codeDisplay = document.getElementById('vs-my-code');
-            const joinBtn = document.getElementById('vs-join');
-            const joinInput = document.getElementById('vs-code');
-            
-            const lobbyScreen = document.getElementById('lobby-screen');
-            const gameScreen = document.getElementById('game-screen');
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const createBtn = document.getElementById('vs-create');
+      const codeDisplay = document.getElementById('vs-my-code');
+      const joinBtn = document.getElementById('vs-join');
+      const joinInput = document.getElementById('vs-code');
+      const lobbyScreen = document.getElementById('lobby-screen');
+      const gameScreen = document.getElementById('game-screen');
+      const pokemonImg = document.getElementById('pokemon-img');
+      const guessInput = document.getElementById('guess-input');
+      const guessBtn = document.getElementById('guess-button');
 
-            // 画面をクイズに切り替える共通の処理
-            function goToGame() {
-                lobbyScreen.classList.add('hidden'); // ロビーを隠す
-                gameScreen.classList.remove('hidden'); // クイズ画面を出す
-            }
+      let correctAnswer = ""; // 正解の日本語名を保存する変数
 
-            // 「コード生成」ボタン
-            if (createBtn && codeDisplay) {
-                createBtn.addEventListener('click', () => {
-                    const randomCode = Math.floor(100000 + Math.random() * 900000);
-                    codeDisplay.innerText = randomCode;
-                    alert("部屋を作りました！友達が参加するのを待っています。");
-                    
-                    // 今回は個人サーバーがないため、仮で3秒後に自動でゲーム画面に進むようにします
-                    setTimeout(() => {
-                        goToGame();
-                    }, 3000);
-                });
-            }
+      // 画面をクイズに切り替える処理
+      function goToGame() {
+        lobbyScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        getNewPokemon(); // ゲーム画面に切り替わったら問題を読み込む
+      }
 
-            // 「参加する」ボタン
-            if (joinBtn && joinInput) {
-                joinBtn.addEventListener('click', () => {
-                    const enteredCode = joinInput.value.trim();
-                    if (enteredCode.length === 6 && !isNaN(enteredCode)) {
-                        alert("部屋コード " + enteredCode + " に参加しました！ゲームに移行します。");
-                        goToGame(); // クイズ画面へ移行
-                    } else {
-                        alert("正しい6桁の数字を入力してください。");
-                    }
-                });
-            }
+      // ★ PokeAPIからランダムにポケモンを取得する処理
+      async function getNewPokemon() {
+        try {
+          // 初代151匹の中からランダムにIDを選ぶ
+          const pokemonId = Math.floor(Math.random() * 151) + 1;
+          
+          // ポケモンの基本情報（画像など）を取得
+          const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+          const pokemonData = await res.json();
+          
+          // ポケモンの「日本語名」を取得するための追加通信
+          const speciesRes = await fetch(pokemonData.species.url);
+          const speciesData = await speciesRes.json();
+          
+          // 日本語の名前を探して変数に入れる
+          const japaneseName = speciesData.names.find(name => name.language.name === "ja").name;
+          correctAnswer = japaneseName;
 
-            // クイズ回答ボタンのダミー処理
-            const guessBtn = document.getElementById('guess-button');
-            if (guessBtn) {
-                guessBtn.addEventListener('click', () => {
-                    const answer = document.getElementById('guess-input').value.trim();
-                    if(answer) {
-                        alert(answer + " と回答しました！相手の回答を待っています。");
-                    } else {
-                        alert("名前を入力してください。");
-                    }
-                });
-            }
+          // 画像のURLをセットして、影（シルエット）の状態にする
+          pokemonImg.src = pokemonData.sprites.front_default;
+          pokemonImg.classList.remove('reveal'); 
+          guessInput.value = ""; // 入力欄をクリア
+          
+          console.log("正解の答え (開発用):", correctAnswer);
+        } catch (error) {
+          console.error("データの取得に失敗しました:", error);
+          alert("ポケモンのデータを読み込めませんでした。再読み込みしてください。");
+        }
+      }
+
+      // 「コード生成」ボタン
+      if (createBtn && codeDisplay) {
+        createBtn.addEventListener('click', () => {
+          const randomCode = Math.floor(100000 + Math.random() * 900000);
+          codeDisplay.innerText = randomCode;
+          alert("部屋を作りました！友達が参加するのを待っています。");
+          setTimeout(() => { goToGame(); }, 3000);
         });
-    </script>
+      }
+
+      // 「参加する」ボタン
+      if (joinBtn && joinInput) {
+        joinBtn.addEventListener('click', () => {
+          const enteredCode = joinInput.value.trim();
+          if (enteredCode.length === 6 && !isNaN(enteredCode)) {
+            alert("部屋コード " + enteredCode + " に参加しました！ゲームに移行します。");
+            goToGame();
+          } else {
+            alert("正しい6桁の数字を入力してください。");
+          }
+        });
+      }
+
+      // ★ クイズ回答ボタンの判定処理
+      if (guessBtn) {
+        guessBtn.addEventListener('click', () => {
+          const userAnswer = guessInput.value.trim();
+          if (!userAnswer) {
+            alert("名前を入力してください。");
+            return;
+          }
+
+          // シルエットの影を解除して色を付ける
+          pokemonImg.classList.add('reveal');
+
+          // 正誤判定
+          if (userAnswer === correctAnswer) {
+            alert("✨ 正解！！ 正解は「" + correctAnswer + "」です！");
+          } else {
+            alert("❌ 残念！ 正解は「" + correctAnswer + "」でした！");
+          }
+
+          // 3秒後に次の問題へ
+          setTimeout(() => {
+            getNewPokemon();
+          }, 3000);
+        });
+      }
+    });
+  </script>
 </body>
 </html>
