@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Poke Guesser - 対戦ロビー</title>
+  <title>Poke Guesser - 2人対戦ロビー</title>
   <style>
     body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
     .vlobby-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); max-width: 400px; width: 90%; text-align: center; }
@@ -13,7 +13,7 @@
     .vlobby-code-box { margin: 20px 0; padding: 15px; background: #fff0f1; border-radius: 8px; }
     #vs-my-code { font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: #ff5a5f; }
     button { width: 100%; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s; }
-    #vs-create { background: #ff5a5f; color: white; }
+    #vs-create { background: #ff5a5f; color: white; margin-bottom: 10px; }
     #vs-create:hover { background: #e0484c; }
     input { font-size: 1.5rem; padding: 10px; width: 80%; text-align: center; border: 2px solid #ddd; border-radius: 6px; margin-bottom: 15px; }
     #vs-join { background: #333; color: white; }
@@ -24,24 +24,29 @@
     .hidden { display: none !important; }
     .quiz-area { text-align: center; width: 100%; max-width: 500px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
     
-    /* ★本家のように画像を黒いシルエットにするスタイル */
     .quiz-image-box { width: 200px; height: 200px; margin: 20px auto; display: flex; justify-content: center; align-items: center; }
-    .quiz-image { max-width: 100%; max-height: 100%; filter: brightness(0); } /* 最初は真っ黒 */
-    .quiz-image.reveal { filter: none; } /* 正解・不正解時に色を戻す */
+    .quiz-image { max-width: 100%; max-height: 100%; filter: brightness(0); } 
+    .quiz-image.reveal { filter: none; } 
+    #status-msg { font-weight: bold; color: #ff5a5f; margin-top: 10px; }
   </style>
+
+  <!-- ★ Firebase のライブラリを読み込みます (初心者でも扱いやすいv8形式) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
   <!-- 1. ロビー画面 -->
   <div id="lobby-screen" class="vlobby-card">
-    <h2>対戦モード (カスタム)</h2>
+    <h2>対戦モード (2人専用)</h2>
     <section class="vlobby-panel vlobby-create">
       <h4>ルームを作成</h4>
-      <p>表示されたコードを友達に共有してください</p>
+      <p>コードを生成後、友達に共有してください</p>
       <div class="vlobby-code-box">
         <span id="vs-my-code">------</span>
       </div>
       <button id="vs-create">コード生成</button>
+      <div id="status-msg"></div>
     </section>
     <hr>
     <section class="vlobby-panel vlobby-join">
@@ -54,10 +59,9 @@
 
   <!-- 2. クイズ対戦画面 -->
   <div id="game-screen" class="quiz-area hidden">
-    <h2>対戦スタート！</h2>
+    <h2 id="room-title">対戦中部屋: ----</h2>
     <p>このポケモンの名前を当ててください！</p>
     
-    <!-- ★❓マークの代わりに画像が表示されるように変更 -->
     <div class="quiz-image-box">
       <img id="pokemon-img" class="quiz-image" src="" alt="ポケモン">
     </div>
@@ -69,6 +73,22 @@
   </div>
 
   <script>
+    // ★ あなたが送ってくれたFirebaseの情報をここにセットしました！
+    const firebaseConfig = {
+      apiKey: "AIzaSyAt9sD_1d2oiV7ezuwU8fcfdh5sCGft9x0",
+      authDomain: "pokegesa-66564.firebaseapp.com",
+      databaseURL: "https://pokegesa-66564-default-rtdb.firebaseio.com",
+      projectId: "pokegesa-66564",
+      storageBucket: "pokegesa-66564.firebasestorage.app",
+      messagingSenderId: "666509842476",
+      appId: "1:666509842476:web:5d120f90f615bec0719989",
+      measurementId: "G-VBQ82PFLF3"
+    };
+
+    // Firebaseの初期化
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     document.addEventListener('DOMContentLoaded', () => {
       const createBtn = document.getElementById('vs-create');
       const codeDisplay = document.getElementById('vs-my-code');
@@ -79,70 +99,115 @@
       const pokemonImg = document.getElementById('pokemon-img');
       const guessInput = document.getElementById('guess-input');
       const guessBtn = document.getElementById('guess-button');
+      const statusMsg = document.getElementById('status-msg');
+      const roomTitle = document.getElementById('room-title');
 
-      let correctAnswer = ""; // 正解の日本語名を保存する変数
+      let currentRoomCode = null;
+      let isHost = false;
+      let correctAnswer = "";
 
-      // 画面をクイズに切り替える処理
-      function goToGame() {
+      // 画面切り替えとリアルタイム同期の開始
+      function startRoom(roomCode) {
+        currentRoomCode = roomCode;
+        roomTitle.innerText = `対戦中部屋: ${roomCode}`;
         lobbyScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
-        getNewPokemon(); // ゲーム画面に切り替わったら問題を読み込む
-      }
 
-      // ★ PokeAPIからランダムにポケモンを取得する処理
-      async function getNewPokemon() {
-        try {
-          // 初代151匹の中からランダムにIDを選ぶ
-          const pokemonId = Math.floor(Math.random() * 151) + 1;
-          
-          // ポケモンの基本情報（画像など）を取得
-          const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
-          const pokemonData = await res.json();
-          
-          // ポケモンの「日本語名」を取得するための追加通信
-          const speciesRes = await fetch(pokemonData.species.url);
-          const speciesData = await speciesRes.json();
-          
-          // 日本語の名前を探して変数に入れる
-          const japaneseName = speciesData.names.find(name => name.language.name === "ja").name;
-          correctAnswer = japaneseName;
-
-          // 画像のURLをセットして、影（シルエット）の状態にする
-          pokemonImg.src = pokemonData.sprites.front_default;
-          pokemonImg.classList.remove('reveal'); 
-          guessInput.value = ""; // 入力欄をクリア
-          
-          console.log("正解の答え (開発用):", correctAnswer);
-        } catch (error) {
-          console.error("データの取得に失敗しました:", error);
-          alert("ポケモンのデータを読み込めませんでした。再読み込みしてください。");
-        }
-      }
-
-      // 「コード生成」ボタン
-      if (createBtn && codeDisplay) {
-        createBtn.addEventListener('click', () => {
-          const randomCode = Math.floor(100000 + Math.random() * 900000);
-          codeDisplay.innerText = randomCode;
-          alert("部屋を作りました！友達が参加するのを待っています。");
-          setTimeout(() => { goToGame(); }, 3000);
-        });
-      }
-
-      // 「参加する」ボタン
-      if (joinBtn && joinInput) {
-        joinBtn.addEventListener('click', () => {
-          const enteredCode = joinInput.value.trim();
-          if (enteredCode.length === 6 && !isNaN(enteredCode)) {
-            alert("部屋コード " + enteredCode + " に参加しました！ゲームに移行します。");
-            goToGame();
-          } else {
-            alert("正しい6桁の数字を入力してください。");
+        // データベースの「いま出題されているポケモンのデータ」を常に見張る
+        database.ref('rooms/' + roomCode).on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data && data.currentPokemon) {
+            correctAnswer = data.currentPokemon.name;
+            pokemonImg.src = data.currentPokemon.image;
+            
+            // 新しい問題になったらシルエットに戻し、入力欄をクリア
+            if (data.status === 'playing') {
+              pokemonImg.classList.remove('reveal');
+              guessInput.value = "";
+            } else if (data.status === 'revealed') {
+              pokemonImg.classList.add('reveal');
+            }
           }
         });
       }
 
-      // ★ クイズ回答ボタンの判定処理
+      // ★ 親（ホスト）が新しいポケモンを決定し、データベースに送る処理
+      async function createNewQuestion(roomCode) {
+        try {
+          const pokemonId = Math.floor(Math.random() * 151) + 1;
+          const res = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
+          const pokemonData = await res.json();
+          const speciesRes = await fetch(pokemonData.species.url);
+          const speciesData = await speciesRes.json();
+          const japaneseName = speciesData.names.find(name => name.language.name === "ja").name;
+
+          // データベースの部屋情報を更新（参加者にも自動で届く）
+          database.ref('rooms/' + roomCode).update({
+            status: 'playing',
+            currentPokemon: {
+              id: pokemonId,
+              name: japaneseName,
+              image: pokemonData.sprites.front_default
+            }
+          });
+        } catch (e) {
+          console.error("ポケモン取得失敗:", e);
+        }
+      }
+
+      // 「コード生成」ボタン（親になる）
+      if (createBtn) {
+        createBtn.addEventListener('click', () => {
+          isHost = true;
+          const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
+          codeDisplay.innerText = randomCode;
+          statusMsg.innerText = "友達の参加を待っています...";
+
+          // Firebaseに部屋を作成
+          database.ref('rooms/' + randomCode).set({
+            status: 'waiting',
+            hostConnected: true
+          });
+
+          // 誰かがその部屋に参加したか（データが更新されたか）見張る
+          database.ref('rooms/' + randomCode + '/guestConnected').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+              statusMsg.innerText = "友達が参加しました！ゲームを始めます。";
+              // 親が最初の問題をセットして、ゲーム画面へ移行
+              createNewQuestion(randomCode).then(() => {
+                startRoom(randomCode);
+              });
+            }
+          });
+        });
+      }
+
+      // 「参加する」ボタン（子になる）
+      if (joinBtn) {
+        joinBtn.addEventListener('click', () => {
+          const enteredCode = joinInput.value.trim();
+          if (enteredCode.length !== 6 || isNaN(enteredCode)) {
+            alert("正しい6桁の数字を入力してください。");
+            return;
+          }
+
+          // 入力された部屋が存在するかチェック
+          database.ref('rooms/' + enteredCode).once('value', (snapshot) => {
+            if (snapshot.exists()) {
+              isHost = false;
+              // 自分が参加したことをデータベースに書き込む
+              database.ref('rooms/' + enteredCode).update({
+                guestConnected: true
+              });
+              startRoom(enteredCode);
+            } else {
+              alert("その部屋コードは見つかりませんでした。");
+            }
+          });
+        });
+      }
+
+      // 回答ボタンの判定処理
       if (guessBtn) {
         guessBtn.addEventListener('click', () => {
           const userAnswer = guessInput.value.trim();
@@ -151,20 +216,22 @@
             return;
           }
 
-          // シルエットの影を解除して色を付ける
-          pokemonImg.classList.add('reveal');
+          // 全員の画面でシルエットを解除（データベースの状態を更新）
+          database.ref('rooms/' + currentRoomCode).update({ status: 'revealed' });
 
-          // 正誤判定
+          // 各自の画面で正誤判定をポップアップ
           if (userAnswer === correctAnswer) {
             alert("✨ 正解！！ 正解は「" + correctAnswer + "」です！");
           } else {
             alert("❌ 残念！ 正解は「" + correctAnswer + "」でした！");
           }
 
-          // 3秒後に次の問題へ
-          setTimeout(() => {
-            getNewPokemon();
-          }, 3000);
+          // 親（ホスト）のブラウザが代表して3秒後に次の問題をセットする
+          if (isHost) {
+            setTimeout(() => {
+              createNewQuestion(currentRoomCode);
+            }, 3000);
+          }
         });
       }
     });
