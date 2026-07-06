@@ -1,236 +1,194 @@
 <!DOCTYPE html>
 <!-- saved from url=(0062)https://poke-guesser.jp/game.html?mode=versus&v=mega-final-fix -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GAME | Poke Guesser</title>
     <link rel="stylesheet" href="./GAME _ Poke Guesser_files/style.css">
     <link rel="icon" href="https://zukan.pokemon.co.jp/img/ball.svg">
-  </head>
-  <body>
+</head>
+<body>
     <header id="app-header">
-      <a class="logo" href="https://poke-guesser.jp/index.html">Poke <span class="logo-accent">Guesser</span></a>
-      <button id="hamburger-menu" aria-label="メニューを開く" type="button">
-        <span></span>
-        <span></span>
-        <span></span>
-      </button>
-      <nav id="nav-menu">
-        <div class="header-buttons">
-          <a class="header-button" href="https://poke-guesser.jp/index.html">HOME</a>
-          <a class="header-button" href="https://poke-guesser.jp/settings.html">SETTINGS</a>
-          <a class="header-button" href="https://poke-guesser.jp/about.html">ABOUT</a>
-          <a class="header-button" href="https://poke-guesser.jp/updates.html">UPDATES</a>
-          <a class="header-button" href="https://poke-guesser.jp/faq.html">FAQ</a>
-          <a class="header-button" href="https://poke-guesser.jp/glossary.html">Glossary</a>
-          <a class="header-button" href="https://poke-guesser.jp/privacy.html">Privacy</a>
-          <a class="header-button" href="https://poke-guesser.jp/terms.html">Terms</a>
-          <a class="header-button" href="https://poke-guesser.jp/contact.html">Contact</a>
-          <a class="header-button" href="https://poke-guesser.jp/credits.html">Credits</a>
-          <a class="header-button" href="https://poke-guesser.jp/profile.html">Profile</a>
-        </div>
-      </nav>
+        <a class="logo" href="https://poke-guesser.jp/index.html">Poke <span class="logo-accent">Guesser</span></a>
+        <button id="hamburger-menu" aria-label="メニューを開く" type="button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <nav id="nav-menu">
+            <div class="header-buttons">
+                <a class="header-button" href="https://poke-guesser.jp/index.html">HOME</a>
+                <a class="header-button" href="https://poke-guesser.jp/settings.html">SETTINGS</a>
+                <a class="header-button" href="https://poke-guesser.jp/about.html">ABOUT</a>
+                <a class="header-button" href="https://poke-guesser.jp/updates.html">UPDATES</a>
+                <a class="header-button" href="https://poke-guesser.jp/faq.html">FAQ</a>
+                <a class="header-button" href="https://poke-guesser.jp/glossary.html">Glossary</a>
+                <a class="header-button" href="https://poke-guesser.jp/privacy.html">Privacy</a>
+                <a class="header-button" href="https://poke-guesser.jp/terms.html">Terms</a>
+                <a class="header-button" href="https://poke-guesser.jp/contact.html">Contact</a>
+                <a class="header-button" href="https://poke-guesser.jp/credits.html">Credits</a>
+                <a class="header-button" href="https://poke-guesser.jp/profile.html">Profile</a>
+            </div>
+        </nav>
     </header>
-
     <div id="theme-container">
-      <main id="main-content">
-        <div id="game-container" class="">
-          <div id="game-header-area">
-            <div id="game-info-area">
-              <h2 id="game-title">対戦モード</h2>
+        <main id="main-content">
+            <div id="game-container" class="">
+                <div id="game-header-area">
+                    <div id="game-info-area">
+                        <h2 id="game-title">対戦モード</h2>
+                    </div>
+                    <div id="game-meta-area">
+                        <div id="game-status">ルームを作成 or ルームに参加</div>
+                        <div id="turns-remaining" class="hidden" aria-live="polite"></div>
+                    </div>
+                    <div id="game-utility-row">
+                        <button id="surrender-button" class="surrender-button hidden is-disabled" type="button" aria-disabled="true" disabled="" data-ready="1">降参</button>
+                        <button id="hint-button" class="hint-button hidden is-disabled" type="button" disabled="" aria-disabled="true">ヒント</button>
+                    </div>
+                    <div id="game-controls">
+                        <button id="random-start-button" class="action-button hidden" type="button">スタート</button>
+                        <div id="input-area" class="hidden">
+                            <input id="guess-input" type="text" autocomplete="off" placeholder="ポケモンのなまえを入力">
+                            <button id="guess-button" class="guess-button" type="button">GUESS</button>
+                        </div>
+                        <div id="suggestions-box" class="hidden"></div>
+                    </div>
+                </div>
+                <div id="versus-lobby-area">
+                    <div class="vlobby-card">
+                        <div class="vlobby-body">
+                            <section class="vlobby-panel vlobby-create">
+                                <h4 class="vlobby-panel-title">ルームを作成</h4>
+                                <p class="vlobby-panel-description">表示されたコードを共有してください</p>
+                                <div class="vlobby-code">
+                                    <span id="vs-my-code">------</span>
+                                </div>
+                                <div class="vlobby-actions">
+                                    <button id="vs-create" class="vlobby-btn primary">コード生成</button>
+                                </div>
+                            </section>
+                            <div class="vlobby-divider" role="presentation"><span>or</span></div>
+                            <section class="vlobby-panel vlobby-join">
+                                <h4 class="vlobby-panel-title">ルームに参加</h4>
+                                <p class="vlobby-panel-description">コード（数字6桁）を入力してください</p>
+                                <div class="vlobby-join-input">
+                                    <input id="vs-code" class="vlobby-input" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456" aria-label="6桁のルームコード">
+                                </div>
+                                <div class="vlobby-actions">
+                                    <button id="vs-join" class="vlobby-btn ghost small">参加する</button>
+                                </div>
+                                <p id="vlobby-error" class="vlobby-error" aria-live="polite" style="display:none;"></p>
+                            </section>
+                        </div>
+                    </div>
+                </div><div id="results-area" class="hidden" style="display: none;">
+                    <div id="result-history"></div>
+                </div>
+                <div id="post-game-actions" class="hidden">
+                    <button class="action-button" id="post-game-play-again" type="button">もう一度遊ぶ</button>
+                    <button class="action-button" id="post-game-back-to-menu" type="button">ホームへ戻る</button>
+                </div>
             </div>
-            <div id="game-meta-area">
-              <div id="game-status">ルームを作成 or ルームに参加</div>
-              <div id="turns-remaining" class="hidden" aria-live="polite"></div>
-            </div>
-
-            <div id="game-utility-row">
-              <button id="surrender-button" class="surrender-button hidden is-disabled" type="button" aria-disabled="true" disabled="" data-ready="1">降参</button>
-              <button id="hint-button" class="hint-button hidden is-disabled" type="button" disabled="" aria-disabled="true">ヒント</button>
-            </div>
-
-            <div id="game-controls">
-              <button id="random-start-button" class="action-button hidden" type="button">スタート</button>
-
-              <div id="input-area" class="hidden">
-                <input id="guess-input" type="text" autocomplete="off" placeholder="ポケモンのなまえを入力">
-                <button id="guess-button" class="guess-button" type="button">GUESS</button>
-              </div>
-
-              <div id="suggestions-box" class="hidden"></div>
-            </div>
-          </div>
-
-          <div id="versus-lobby-area">
-    <div class="vlobby-card">
-      <div class="vlobby-body">
-        <section class="vlobby-panel vlobby-create">
-          <h4 class="vlobby-panel-title">ルームを作成</h4>
-          <p class="vlobby-panel-description">表示されたコードを共有してください</p>
-            <div class="vlobby-code">
-              <span id="vs-my-code">------</span>
-            </div>
-            <div class="vlobby-actions">
-              <button id="vs-create" class="vlobby-btn primary">コード生成</button>
-            </div>
-        </section>
-      <div class="vlobby-divider" role="presentation"><span>or</span></div>
-        <section class="vlobby-panel vlobby-join">
-          <h4 class="vlobby-panel-title">ルームに参加</h4>
-          <p class="vlobby-panel-description">コード（数字6桁）を入力してください</p>
-          <div class="vlobby-join-input">
-            <input id="vs-code" class="vlobby-input" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" placeholder="123456" aria-label="6桁のルームコード">
-          </div>
-          <div class="vlobby-actions">
-            <button id="vs-join" class="vlobby-btn ghost small">参加する</button>
-          </div>
-          <p id="vlobby-error" class="vlobby-error" aria-live="polite" style="display:none;"></p>
-        </section>
-      </div>
+            <footer id="site-footer">
+                <div class="footer-links">
+                    <a class="footer-link" href="https://poke-guesser.jp/privacy.html">Privacy</a>
+                    <span class="footer-sep">｜</span>
+                    <a class="footer-link" href="https://poke-guesser.jp/terms.html">Terms</a>
+                    <span class="footer-sep">｜</span>
+                    <a class="footer-link" href="https://poke-guesser.jp/contact.html">Contact</a>
+                    <span class="footer-sep">｜</span>
+                    <a class="footer-link" href="https://poke-guesser.jp/credits.html">Credits</a>
+                    <span class="footer-sep">｜</span>
+                    <a class="footer-link" href="https://poke-guesser.jp/faq.html">FAQ</a>
+                </div>
+            </footer>
+        </main>
     </div>
-  </div><div id="results-area" class="hidden" style="display: none;">
-            <div id="result-history"></div>
-          </div>
-
-          <div id="post-game-actions" class="hidden">
-            <button class="action-button" id="post-game-play-again" type="button">もう一度遊ぶ</button>
-            <button class="action-button" id="post-game-back-to-menu" type="button">ホームへ戻る</button>
-          </div>
-        </div>
-
-        <footer id="site-footer">
-          <div class="footer-links">
-            <a class="footer-link" href="https://poke-guesser.jp/privacy.html">Privacy</a>
-            <span class="footer-sep">｜</span>
-            <a class="footer-link" href="https://poke-guesser.jp/terms.html">Terms</a>
-            <span class="footer-sep">｜</span>
-            <a class="footer-link" href="https://poke-guesser.jp/contact.html">Contact</a>
-            <span class="footer-sep">｜</span>
-            <a class="footer-link" href="https://poke-guesser.jp/credits.html">Credits</a>
-            <span class="footer-sep">｜</span>
-            <a class="footer-link" href="https://poke-guesser.jp/faq.html">FAQ</a>
-          </div>
-        </footer>
-      </main>
-    </div>
-
     <div id="modal-overlay" class="hidden">
-      <div id="modal">
-        <button id="modal-close-button" type="button">×</button>
-        <div id="modal-content"></div>
-      </div>
+        <div id="modal">
+            <button id="modal-close-button" type="button">×</button>
+            <div id="modal-content"></div>
+        </div>
     </div>
-
     <div id="result-modal-overlay" class="hidden">
-      <div id="result-modal">
-        <button id="result-modal-close-button" class="modal-close-button" type="button">×</button>
-
-        <h1 id="result-modal-verdict">
-          <img id="verdict-cracker-img-left" class="verdict-cracker-img left" src="./GAME _ Poke Guesser_files/cracker.png" alt="cracker">
-          <span></span>
-          <img id="verdict-cracker-img-right" class="verdict-cracker-img right" src="./GAME _ Poke Guesser_files/cracker.png" alt="cracker">
-        </h1>
-
-        <p id="result-modal-score" class="result-score-text"></p>
-
-        <div id="result-modal-profile">
-          <div class="profile-header">
-            <div class="sprite-container">
-              <img data-field="sprite" src="https://poke-guesser.jp/game.html?mode=versus&amp;v=mega-final-fix" alt="pokemon-sprite">
+        <div id="result-modal">
+            <button id="result-modal-close-button" class="modal-close-button" type="button">×</button>
+            <h1 id="result-modal-verdict">
+                <img id="verdict-cracker-img-left" class="verdict-cracker-img left" src="./GAME _ Poke Guesser_files/cracker.png" alt="cracker">
+                <span></span>
+                <img id="verdict-cracker-img-right" class="verdict-cracker-img right" src="./GAME _ Poke Guesser_files/cracker.png" alt="cracker">
+            </h1>
+            <p id="result-modal-score" class="result-score-text"></p>
+            <div id="result-modal-profile">
+                <div class="profile-header">
+                    <div class="sprite-container">
+                        <img data-field="sprite" src="https://poke-guesser.jp/game.html?mode=versus&amp;v=mega-final-fix" alt="pokemon-sprite">
+                    </div>
+                    <div class="name-number-wrapper">
+                        <div class="national-no-display" data-field="nationalNo"></div>
+                        <h2 class="pokemon-name-display">
+                            <span data-field="name"></span>
+                            <span class="form-name" data-field="form"></span>
+                        </h2>
+                    </div>
+                </div>
+                <div class="profile-content-wrapper">
+                    <div class="profile-left"></div>
+                    <div class="profile-right"></div>
+                </div>
             </div>
-            <div class="name-number-wrapper">
-              <div class="national-no-display" data-field="nationalNo"></div>
-              <h2 class="pokemon-name-display">
-                <span data-field="name"></span>
-                <span class="form-name" data-field="form"></span>
-              </h2>
+            <div id="result-modal-hints" class="result-hints">
+                <p class="result-hints-label">使用したヒント：</p>
+                <p class="result-hints-list"></p>
             </div>
-          </div>
-
-          <div class="profile-content-wrapper">
-            <div class="profile-left"></div>
-            <div class="profile-right"></div>
-          </div>
         </div>
-        <div id="result-modal-hints" class="result-hints">
-          <p class="result-hints-label">使用したヒント：</p>
-          <p class="result-hints-list"></p>
-        </div>
-      </div>
     </div>
-
     <div id="hint-modal-overlay" class="hidden" role="dialog" aria-modal="true" aria-labelledby="hint-modal-title">
-      <div id="hint-modal">
-        <button id="hint-modal-close-button" class="modal-close-button" type="button">×</button>
-        <h2 id="hint-modal-title">ヒント</h2>
-        <p id="hint-modal-description">確認する項目を選択してください</p>
-        <div id="hint-modal-options" role="listbox"></div>
-        <div id="hint-modal-result" class="hidden" aria-live="polite">
-          <p class="hint-selected-label"></p>
-          <p class="hint-selected-value"></p>
+        <div id="hint-modal">
+            <button id="hint-modal-close-button" class="modal-close-button" type="button">×</button>
+            <h2 id="hint-modal-title">ヒント</h2>
+            <p id="hint-modal-description">確認する項目を選択してください</p>
+            <div id="hint-modal-options" role="listbox"></div>
+            <div id="hint-modal-result" class="hidden" aria-live="polite">
+                <p class="hint-selected-label"></p>
+                <p class="hint-selected-value"></p>
+            </div>
         </div>
-      </div>
     </div>
-
     <div class="footer-copy">© 2026 Poke Guesser</div>
-
     <script>
-      window.FIREBASE_CONFIG = {
-        apiKey: "AIzaSyC3MFZCk5VdYU8FNx9XoqEZFOpDOJ9FWr0",
-        authDomain: "poke-guesser-0805.firebaseapp.com",
-        databaseURL: "https://poke-guesser-0805-default-rtdb.asia-southeast1.firebasedatabase.app",
-        projectId: "poke-guesser-0805",
-        storageBucket: "poke-guesser-0805.firebasestorage.app",
-        messagingSenderId: "1098407280597",
-        appId: "1:1098407280597:web:ede660fe64f1fb5ad2475c"
-      };
+        window.FIREBASE_CONFIG = {apiKey: "AIzaSyC3MFZCk5VdYU8FNx9XoqEZFOpDOJ9FWr0", authDomain: "poke-guesser-0805.firebaseapp.com", databaseURL: "https://poke-guesser-0805-default-rtdb.asia-southeast1.firebasedatabase.app", projectId: "poke-guesser-0805", storageBucket: "poke-guesser-0805.firebasestorage.app", messagingSenderId: "1098407280597", appId: "1:1098407280597:web:ede660fe64f1fb5ad2475c" };
     </script>
     <script src="./GAME _ Poke Guesser_files/site-nav.js.ダウンロード" defer=""></script>
     <script type="module" src="./GAME _ Poke Guesser_files/main.js.ダウンロード"></script>
-  
-
-<deepl-input-controller translate="no"><template shadowrootmode="open"><link rel="stylesheet" href="chrome-extension://cofdbpoegempjloogbagkncekinflcnj/build/content.css"><div dir="ltr" style="visibility: initial !important;"><div class="dl-input-translation-container svelte-95aucy"><div></div></div></div></template></deepl-input-controller></body><script>
-const urlParams = new URLSearchParams(window.location.search);
-const myRoomId = urlParams.get('room');
-if (myRoomId) {
-    setTimeout(() => {
-        if (typeof roomId !== 'undefined') roomId = myRoomId;
-        if (typeof roomCode !== 'undefined') roomCode = myRoomId;
-        const codeDisplay = document.querySelector('.versus-code, [id*="code"]');
-        if (codeDisplay) codeDisplay.innerText = myRoomId;
-        console.log("自動で部屋に接続しました: " + myRoomId);
-        const joinBtn = document.querySelector('.versus-join-btn, button:contains("参加")');
-        if (joinBtn) joinBtn.click();
-    }, 1000);
-}
-</script><!-- ボタンを動かすための設定を追加 -->
+</body>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const myRoomId = urlParams.get('room');
+    if (myRoomId) {
+        setTimeout(() => {
+            if (typeof roomId !== 'undefined') roomId = myRoomId;
+            if (typeof roomCode !== 'undefined') roomCode = myRoomId;
+            const codeDisplay = document.querySelector('.versus-code, [id*="code"]');
+            if (codeDisplay) codeDisplay.innerText = myRoomId;
+            console.log("自動で部屋に接続しました: " + myRoomId);
+            const joinBtn = document.querySelector('.versus-join-btn, button:contains("参加")');
+            if (joinBtn) joinBtn.click();
+        }, 1000);
+    }
+</script>
+<!-- ボタンを動かすための設定を追加 -->
 <script type="module">
   import { Handlers } from './game.js';
   
-  // 画面が読み込まれたら、ボタンに機能を覚えさせる
   document.addEventListener('DOMContentLoaded', () => {
-    // 「コード生成」ボタンを見つけて、押されたら部屋コードを作るようにする
-    const generateBtn = document.querySelector('button[onclick*="generateRoomCode"], button:contains("コード生成")') || document.querySelectorAll('button')[0]; 
+    const generateBtn = document.getElementById('vs-create'); 
     if (generateBtn) {
-      generateBtn.removeAttribute('onclick'); // 古い命令を消す
+      generateBtn.removeAttribute('onclick');
       generateBtn.addEventListener('click', () => {
         Handlers.onStartVersus();
       });
     }
   });
-</script><!-- ボタンを動かすための設定を追加 -->
-<script type="module">
-  import { Handlers } from './game.js';
-  
-  // 画面が読み込まれたら、ボタンに機能を覚えさせる
-  document.addEventListener('DOMContentLoaded', () => {
-    // 「コード生成」ボタンを見つけて、押されたら部屋コードを作るようにする
-    const generateBtn = document.querySelector('button[onclick*="generateRoomCode"], button:contains("コード生成")') || document.querySelectorAll('button')[0]; 
-    if (generateBtn) {
-      generateBtn.removeAttribute('onclick'); // 古い命令を消す
-      generateBtn.addEventListener('click', () => {
-        Handlers.onStartVersus();
-      });
-    }
-  });
-</script></html>
+</script>
+</html>
