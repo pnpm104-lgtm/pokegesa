@@ -24,80 +24,46 @@
             width: 90%;
             text-align: center;
         }
-        h2 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        h4 {
-            margin: 10px 0;
-            color: #444;
-        }
-        p {
-            color: #666;
-            font-size: 0.9rem;
-        }
+        h2 { color: #333; margin-bottom: 20px; }
+        h4 { margin: 10px 0; color: #444; }
+        p { color: #666; font-size: 0.9rem; }
         .vlobby-code-box {
-            margin: 20px 0;
-            padding: 15px;
-            background: #fff0f1;
-            border-radius: 8px;
+            margin: 20px 0; padding: 15px;
+            background: #fff0f1; border-radius: 8px;
         }
         #vs-my-code {
-            font-size: 2.5rem;
-            font-weight: bold;
-            letter-spacing: 4px;
-            color: #ff5a5f;
+            font-size: 2.5rem; font-weight: bold;
+            letter-spacing: 4px; color: #ff5a5f;
         }
         button {
-            width: 100%;
-            padding: 12px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s;
+            width: 100%; padding: 12px;
+            font-size: 1rem; font-weight: bold;
+            border-radius: 6px; border: none;
+            cursor: pointer; transition: background 0.2s;
         }
-        #vs-create {
-            background: #ff5a5f;
-            color: white;
-        }
-        #vs-create:hover {
-            background: #e0484c;
-        }
+        #vs-create { background: #ff5a5f; color: white; }
+        #vs-create:hover { background: #e0484c; }
         input {
-            font-size: 1.5rem;
-            padding: 10px;
-            width: 80%;
-            text-align: center;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            margin-bottom: 15px;
+            font-size: 1.5rem; padding: 10px; width: 80%;
+            text-align: center; border: 2px solid #ddd;
+            border-radius: 6px; margin-bottom: 15px;
         }
-        input:focus {
-            border-color: #ff5a5f;
-            outline: none;
-        }
-        #vs-join {
-            background: #333;
-            color: white;
-        }
-        #vs-join:hover {
-            background: #222;
-        }
-        hr {
-            margin: 30px 0;
-            border: 0;
-            border-top: 1px dashed #ccc;
-        }
+        #vs-join { background: #333; color: white; }
+        #vs-join:hover { background: #222; }
+        hr { margin: 30px 0; border: 0; border-top: 1px dashed #ccc; }
+
+        /* クイズ画面のスタイル */
+        .hidden { display: none !important; }
+        .quiz-area { text-align: center; width: 100%; max-width: 500px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .quiz-image-placeholder { width: 200px; height: 200px; background: #ddd; margin: 20px auto; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 4rem; color: #aaa; }
     </style>
 </head>
 <body>
 
-    <div class="vlobby-card">
+    <!-- 1. ロビー画面（最初の画面） -->
+    <div id="lobby-screen" class="vlobby-card">
         <h2>対戦モード (カスタム)</h2>
         
-        <!-- ルーム作成エリア -->
         <section class="vlobby-panel vlobby-create">
             <h4>ルームを作成</h4>
             <p>表示されたコードを友達に共有してください</p>
@@ -109,7 +75,6 @@
         
         <hr>
         
-        <!-- ルーム参加エリア -->
         <section class="vlobby-panel vlobby-join">
             <h4>ルームに参加</h4>
             <p>友達のコード（数字6桁）を入力してください</p>
@@ -118,31 +83,69 @@
         </section>
     </div>
 
-    <!-- 動かすためのプログラム -->
+    <!-- 2. クイズ対戦画面（移行先の画面） -->
+    <div id="game-screen" class="quiz-area hidden">
+        <h2>対戦スタート！</h2>
+        <p>このポケモンの名前を当ててください！</p>
+        <div class="quiz-image-placeholder">❓</div>
+        <div style="margin: 20px 0;">
+            <input id="guess-input" style="width: 80%; font-size: 1.2rem; padding: 10px; border: 2px solid #ccc; border-radius: 6px;" placeholder="ポケモンのなまえを入力">
+        </div>
+        <button id="guess-button" style="background: #4caf50; color: white; font-size: 1.2rem;">回答する (GUESS)</button>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const createBtn = document.getElementById('vs-create');
             const codeDisplay = document.getElementById('vs-my-code');
             const joinBtn = document.getElementById('vs-join');
             const joinInput = document.getElementById('vs-code');
+            
+            const lobbyScreen = document.getElementById('lobby-screen');
+            const gameScreen = document.getElementById('game-screen');
 
-            // 「コード生成」ボタンを押したときの動き
+            // 画面をクイズに切り替える共通の処理
+            function goToGame() {
+                lobbyScreen.classList.add('hidden'); // ロビーを隠す
+                gameScreen.classList.remove('hidden'); // クイズ画面を出す
+            }
+
+            // 「コード生成」ボタン
             if (createBtn && codeDisplay) {
                 createBtn.addEventListener('click', () => {
                     const randomCode = Math.floor(100000 + Math.random() * 900000);
                     codeDisplay.innerText = randomCode;
-                    alert("部屋を作りました！コード: " + randomCode + " を友達に伝えてください。");
+                    alert("部屋を作りました！友達が参加するのを待っています。");
+                    
+                    // 今回は個人サーバーがないため、仮で3秒後に自動でゲーム画面に進むようにします
+                    setTimeout(() => {
+                        goToGame();
+                    }, 3000);
                 });
             }
 
-            // 「参加する」ボタンを押したときの動き
+            // 「参加する」ボタン
             if (joinBtn && joinInput) {
                 joinBtn.addEventListener('click', () => {
                     const enteredCode = joinInput.value.trim();
                     if (enteredCode.length === 6 && !isNaN(enteredCode)) {
-                        alert("部屋コード " + enteredCode + " に参加しました！ゲームを開始します。");
+                        alert("部屋コード " + enteredCode + " に参加しました！ゲームに移行します。");
+                        goToGame(); // クイズ画面へ移行
                     } else {
                         alert("正しい6桁の数字を入力してください。");
+                    }
+                });
+            }
+
+            // クイズ回答ボタンのダミー処理
+            const guessBtn = document.getElementById('guess-button');
+            if (guessBtn) {
+                guessBtn.addEventListener('click', () => {
+                    const answer = document.getElementById('guess-input').value.trim();
+                    if(answer) {
+                        alert(answer + " と回答しました！相手の回答を待っています。");
+                    } else {
+                        alert("名前を入力してください。");
                     }
                 });
             }
