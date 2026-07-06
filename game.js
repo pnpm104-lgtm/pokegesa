@@ -1,47 +1,35 @@
-import { initDOM } from "./dom.js?v=mega-final-fix";
-import { Handlers, initGame } from "./game.js?v=custom-answer-5";
-
-function getModeFromQuery() {
-  const params = new URLSearchParams(window.location.search);
-  const mode = (params.get("mode") || "").toLowerCase();
-
-  if (mode === "randomstart" || mode === "random") return "random";
-  if (mode === "stats") return "stats";
-  if (mode === "versus") return "versus";
-  return null;
-}
-
-function startMode(mode) {
-  if (!mode) return;
-
-  if (mode === "random") {
-    Handlers.onStartRandom();
-    return;
+export const Handlers = {
+  onStartRandom: () => {
+    console.log("ランダムモード開始");
+  },
+  onStartStats: () => {
+    console.log("統計モード開始");
+  },
+  onStartVersus: () => {
+    console.log("対戦モード開始");
+    // 友達と2人で遊べるように、部屋のコードを自動生成して表示する仕組み
+    const roomCodeElement = document.getElementById("versus-room-code");
+    if (roomCodeElement) {
+      // 6桁のランダムな数字（部屋コード）を作る
+      const generatedCode = Math.floor(100000 + Math.random() * 900000);
+      roomCodeElement.innerText = generatedCode;
+    }
+    
+    // 「ルームを作成」の画面を表示する処理
+    const createArea = document.getElementById("create-room-area");
+    if (createArea) {
+      createArea.style.display = "block";
+    }
   }
-  if (mode === "stats") {
-    Handlers.onStartStats();
-    return;
+};
+
+export function initGame(options) {
+  console.log("ゲーム初期化:", options);
+  // 画面を指定されたコンテナ（対戦画面など）に切り替える
+  if (options && options.initialScreen) {
+    const screen = document.getElementById(options.initialScreen);
+    if (screen) {
+      screen.style.display = "block";
+    }
   }
-  if (mode === "versus" && typeof Handlers.onStartVersus === "function") {
-    Handlers.onStartVersus();
-  }
-}
-
-function boot() {
-  const mode = getModeFromQuery();
-  initDOM(Handlers);
-
-  if (!mode) {
-    window.location.replace("index.html");
-    return;
-  }
-
-  initGame({ initialScreen: "game-container" });
-  startMode(mode);
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", boot, { once: true });
-} else {
-  boot();
 }
