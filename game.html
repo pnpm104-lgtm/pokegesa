@@ -5,104 +5,236 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poke Guesser - 4人種族値対戦ターン制</title>
   <style>
-    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; flex-direction: column; }
-    .vlobby-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); max-width: 400px; width: 90%; text-align: center; }
-    h2 { color: #333; margin-bottom: 20px; }
-    h4 { margin: 10px 0; color: #444; }
+    /* ⑦ 全体的なデザイン・落ち着いた配色（淡い緑色の背景） */
+    body { 
+      font-family: 'Helvetica Neue', Arial, sans-serif; 
+      background-color: #e8f5e9; /* 淡い緑色の背景 */
+      margin: 0; 
+      padding: 10px; 
+      display: flex; 
+      flex-direction: column;
+      align-items: center; 
+      min-height: 100vh; 
+    }
+    
+    /* ロビー画面 */
+    .vlobby-card { background: #fff; padding: 30px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.05); max-width: 400px; width: 90%; text-align: center; margin-top: 50px; }
+    h2 { color: #2e7d32; margin: 10px 0; }
+    h4 { margin: 10px 0; color: #333; }
     p { color: #666; font-size: 0.9rem; }
-    .vlobby-code-box { margin: 20px 0; padding: 15px; background: #fff0f1; border-radius: 8px; }
-    #vs-my-code { font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: #ff5a5f; }
-    button { padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; transition: background 0.2s; }
-    #vs-create { background: #ff5a5f; color: white; width: 100%; margin-bottom: 10px; }
-    #vs-create:hover { background: #e0484c; }
-    #vs-join { background: #333; color: white; width: 100%; }
-    #vs-join:hover { background: #222; }
+    .vlobby-code-box { margin: 20px 0; padding: 15px; background: #ffebee; border-radius: 8px; }
+    #vs-my-code { font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: #c62828; }
+    .lobby-btn { padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; width: 100%; }
+    #vs-create { background: #2e7d32; color: white; margin-bottom: 10px; }
+    #vs-join { background: #333; color: white; }
     .main-input { font-size: 1.5rem; padding: 10px; width: 80%; text-align: center; border: 2px solid #ddd; border-radius: 6px; margin-bottom: 15px; }
-    hr { margin: 30px 0; border: 0; border-top: 1px dashed #ccc; }
-    
-    /* クイズ画面のスタイル */
+    hr { margin: 20px 0; border: 0; border-top: 1px dashed #ccc; }
+
+    /* 画面全体のコンテナ */
+    .quiz-area { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
     .hidden { display: none !important; }
-    .quiz-area { text-align: center; width: 100%; max-width: 900px; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
-    #status-msg { font-weight: bold; color: #ff5a5f; margin-top: 10px; }
-    #turn-indicator { font-size: 1.3rem; font-weight: bold; color: #333; margin: 15px 0; padding: 10px; background: #e3f2fd; border-radius: 6px; }
-    #player-id-badge { font-size: 1rem; color: #666; margin-bottom: 5px; }
 
-    /* 降参ボタン */
-    #surrender-button { background: #787c7e; color: white; font-size: 1rem; margin-left: 10px; padding: 10px 20px; }
-    #surrender-button:hover { background: #5a5e60; }
+    /* ① ヘッダー（画面最上部：全体の情報と降参ボタン） */
+    .game-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #fff;
+      padding: 10px 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .header-info { text-align: left; }
+    .room-id { font-size: 0.85rem; color: #666; margin: 0; }
+    .player-id { font-size: 1rem; font-weight: bold; color: #333; margin: 0; }
+    /* 降参ボタン（目立たせるグレー/赤系） */
+    #surrender-button { background: #e53935; color: white; font-size: 0.85rem; font-weight: bold; border: none; padding: 8px 14px; border-radius: 4px; cursor: pointer; }
 
-    /* ヒントテーブルのスタイル */
-    .history-container { margin-top: 30px; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold; }
-    th { background-color: #f2f2f2; }
+    /* ターン表示インジケーター */
+    #turn-indicator { 
+      font-size: 1rem; 
+      font-weight: bold; 
+      color: #333; 
+      padding: 10px; 
+      background: #fff; 
+      border-radius: 8px; 
+      text-align: center; 
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    /* ② 入力エリア（横長、画面ほぼ横幅いっぱい） */
+    .input-area {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #guess-input {
+      flex: 1;
+      font-size: 1.1rem;
+      padding: 12px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+    }
+    /* GUESSボタン（赤で目立たせる） */
+    #guess-button {
+      background: #d32f2f;
+      color: white;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border: none;
+      padding: 0 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #guess-button:disabled, #guess-input:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* ③ 結果カード（濃いグレーの枠） */
+    .history-container { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .result-card {
+      background: #37474f; /* 濃いグレーの情報カード */
+      color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
     
-    /* Wordle風の色付け */
-    .match-correct { background-color: #6aaa64 !important; color: white; } /* 緑 */
-    .match-partial { background-color: #c9b458 !important; color: white; } /* 黄 */
-    .match-wrong { background-color: #787c7e !important; color: white; }   /* 灰 */
-    .direction-up { color: #ff4d4d; } /* もっと高い */
-    .direction-down { color: #33ccff; } /* もっと低い */
+    /* カードのヘッダー（左：アイコン、中央：名前、右：開閉） */
+    .card-header {
+      display: flex;
+      align-items: center;
+      padding: 12px 15px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .poke-icon {
+      font-size: 1.5rem;
+      margin-right: 12px;
+      background: rgba(255,255,255,0.2);
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+    }
+    .poke-name {
+      font-size: 1.2rem;
+      font-weight: bold;
+      flex: 1;
+    }
+    /* ④ アコーディオン開閉ボタン */
+    .toggle-btn {
+      font-size: 1.2rem;
+      color: #b0bec5;
+      transition: transform 0.2s;
+    }
+    
+    /* ⑤ 情報グリッドレイアウト */
+    .card-body {
+      padding: 12px;
+      background: #263238; /* さらに一段濃いグレー */
+      border-top: 1px solid #455a64;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .grid-row-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .grid-row-full {
+      width: 100%;
+    }
+
+    /* タイル単体のスタイル */
+    .tile {
+      padding: 8px;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: bold;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 2px;
+    }
+    .tile-label {
+      font-size: 0.7rem;
+      color: #b0bec5;
+      font-weight: normal;
+    }
+
+    /* ⑥ 色による判定（緑＝正解・一致、灰色＝不一致） */
+    .status-correct { background-color: #2e7d32 !important; color: white; } /* 緑色（アクセント） */
+    .status-partial { background-color: #f57f17 !important; color: white; } /* 黄色（タイプ一部一致など） */
+    .status-wrong { background-color: #546e7a !important; color: #b0bec5; }   /* 灰色 */
+
+    /* 赤い▲（もっと大きい） 赤い▼（もっと小さい） */
+    .direction-up::after { content: " ▲"; color: #ff5252; font-weight: bold; }
+    .direction-down::after { content: " ▼"; color: #ff5252; font-weight: bold; }
   </style>
 
+  <!-- Firebase v8 ライブラリ -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
+  <!-- ロビー画面 -->
   <div id="lobby-screen" class="vlobby-card">
-    <h2>Poke Guesser 対戦モード (最大4人)</h2>
+    <h2>Poke Guesser 対戦ロビー</h2>
     <section class="vlobby-panel vlobby-create">
       <h4>ルームを作成</h4>
       <p>コードを生成後、友達に共有してください (あなたがP1になります)</p>
       <div class="vlobby-code-box">
         <span id="vs-my-code">------</span>
       </div>
-      <button id="vs-create">コード生成</button>
-      <div id="status-msg"></div>
+      <button id="vs-create" class="lobby-btn">コード生成</button>
+      <div id="status-msg" style="color:#2e7d32; font-weight:bold; margin-top:5px;"></div>
     </section>
     <hr>
     <section class="vlobby-panel vlobby-join">
       <h4>ルームに参加</h4>
       <p>友達のコード（数字6桁）を入力してください</p>
       <input id="vs-code" class="main-input" inputmode="numeric" maxlength="6" placeholder="123456">
-      <button id="vs-join">参加する</button>
+      <button id="vs-join" class="lobby-btn">参加する</button>
     </section>
   </div>
 
+  <!-- クイズ対戦画面 -->
   <div id="game-screen" class="quiz-area hidden">
-    <h2 id="room-title">対戦中部屋: ----</h2>
-    <div id="player-id-badge">あなたは: プレイヤー--</div>
-    <div id="turn-indicator">ターン確認中...</div>
-    <p>予想するポケモンの名前（全角カタカナ）を入力して、種族値を推理しよう！</p>
     
-    <div style="margin: 20px 0;">
-      <input id="guess-input" style="width: 50%; font-size: 1.5rem; padding: 10px; text-align: center; border: 2px solid #ccc; border-radius: 6px;" placeholder="フシギバナ">
-      <button id="guess-button" style="background: #4caf50; color: white; font-size: 1.2rem; height: 52px; vertical-align: top; margin-left: 10px;">GUESS</button>
-      <button id="surrender-button" style="height: 52px; vertical-align: top;">降参する</button>
+    <!-- ① ヘッダーエリア -->
+    <div class="game-header">
+      <div class="header-info">
+        <p class="room-id" id="room-title">部屋: ----</p>
+        <p class="player-id" id="player-id-badge">プレイヤー--</p>
+      </div>
+      <button id="surrender-button">降参</button>
     </div>
 
-    <div class="history-container">
-      <h3>これまでの推理ヒント (新しい順)</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>予想ポケモン</th>
-            <th>世代</th>
-            <th>タイプ1</th>
-            <th>タイプ2</th>
-            <th>進化前数</th>
-            <th>HP</th>
-            <th>攻撃</th>
-            <th>防御</th>
-            <th>特攻</th>
-            <th>特防</th>
-            <th>素早</th>
-          </tr>
-        </thead>
-        <tbody id="history-rows">
-          </tbody>
-      </table>
+    <!-- ターン指示インジケーター -->
+    <div id="turn-indicator">ターン確認中...</div>
+    
+    <!-- ② 入力エリア -->
+    <div class="input-area">
+      <input id="guess-input" placeholder="ポケモンのなまえを入力" autocomplete="off">
+      <button id="guess-button">GUESS</button>
+    </div>
+
+    <!-- ③ 結果カード一覧表示エリア -->
+    <div class="history-container" id="history-box">
+      <!-- ここに最新の予想カードが上から順に追加されます -->
     </div>
   </div>
 
@@ -122,8 +254,7 @@
     firebase.initializeApp(firebaseConfig);
     const database = firebase.database();
 
-    // 初代151匹の「進化前の数」高速検索用スタティック辞書 (エクセルの代わりに埋め込み)
-    // ピチューなどの他世代ベイビィポケモンもカウントに含めて計算しています。
+    // 初代151匹の「進化前の数」高速検索用スタティック辞書
     const preEvolutionCountMap = {
       "フシギダネ":0,"フシギソウ":1,"フシギバナ":2,"ヒトカゲ":0,"リザード":1,"リザードン":2,"ゼニガメ":0,"カメール":1,"カメックス":2,"キャタピー":0,"トランセル":1,"バタフリー":2,"ビードル":0,"コクーン":1,"スピアー":2,"ポッポ":0,"ピジョン":1,"ピジョット":2,"コラッタ":0,"ラッタ":1,"オニスズメ":0,"オニドリル":1,"アーボ":0,"アーボック":1,"ピカチュウ":1,"ライチュウ":2,"サンド":0,"サンドパン":1,"ニドラン♀":0,"ニドリーナ":1,"ニドクイン":2,"ニドラン♂":0,"ニドリーノ":1,"ニドキング":2,"ピッピ":1,"ピクシー":2,"ロコン":0,"キュウコン":1,"プリン":1,"プクリン":2,"ズバット":0,"ゴルバット":1,"ナゾノクサ":0,"クサイハナ":1,"ラフレシア":2,"パラス":0,"パラセクト":1,"コンパン":0,"モルフォン":1,"ディグダ":0,"ダグトリオ":1,"ニャース":0,"ペルシアン":1,"コダック":0,"ゴルダック":1,"マンキー":0,"オコリザル":1,"ガーディ":0,"ウインディ":1,"ニョロモ":0,"ニョロゾ":1,"ニョロボン":2,"ケーシィ":0,"ユンゲラー":1,"フーディン":2,"ワンリキー":0,"ゴーリキー":1,"カイリキー":2,"マダツボミ":0,"ウツドン":1,"ウツボット":2,"メノクラゲ":0,"ドククラゲ":1,"イシツブテ":0,"ゴローン":1,"ゴローニャ":2,"ポニータ":0,"ギャロップ":1,"ヤドン":0,"ヤドラン":1,"コイル":0,"レアコイル":1,"カモネギ":0,"ドードー":0,"ドードリオ":1,"パウワウ":0,"ジュゴン":1,"ベトベター":0,"ベトベトン":1,"シェルダー":0,"パルシェン":1,"ゴース":0,"ゴースト":1,"ゲンガー":2,"イワーク":0,"スリープ":0,"スリーパー":1,"クラブ":0,"キングラー":1,"ビリリダマ":0,"マルマイン":1,"タマタマ":0,"ナッシー":1,"カラカラ":0,"ガラガラ":1,"サワムラー":1,"エビワラー":1,"ベロリンガ":0,"ドガース":0,"マタドガス":1,"サイホーン":0,"サイドン":1,"ラッキー":1,"モンジャラ":0,"ガルーラ":0,"タッツー":0,"シードラ":1,"トサキント":0,"アズマオウ":1,"ヒトデマン":0,"スターミー":1,"バリヤード":1,"ストライク":0,"ルージュラ":1,"エレブー":1,"ブーバー":1,"カイロス":0,"ケンタロス":0,"コイキング":0,"ギャラドス":1,"ラプラス":0,"メタモン":0,"イーブイ":0,"シャワーズ":1,"サンダース":1,"ブースター":1,"ポリゴン":0,"オムナイト":0,"オムスター":1,"カブト":0,"カブトプス":1,"プテラ":0,"カビゴン":1,"フリーザー":0,"サンダー":0,"ファイヤー":0,"ミニリュウ":0,"ハクリュー":1,"カイリュー":2,"ミュウツー":0,"ミュウ":0
     };
@@ -141,12 +272,12 @@
           const gen = 1; 
           const t1 = convertTypeToJapanese(pokeData.types[0].type.name);
           const t2 = pokeData.types[1] ? convertTypeToJapanese(pokeData.types[1].type.name) : "なし";
-          
-          // 進化前の数を高速取得
           const preEvo = preEvolutionCountMap[jaName] !== undefined ? preEvolutionCountMap[jaName] : 0;
 
+          let totalBs = 0;
           const stats = {};
           pokeData.stats.forEach(s => {
+            totalBs += s.base_stat;
             if(s.stat.name === 'hp') stats.hp = s.base_stat;
             if(s.stat.name === 'attack') stats.atk = s.base_stat;
             if(s.stat.name === 'defense') stats.def = s.base_stat;
@@ -155,14 +286,14 @@
             if(s.stat.name === 'speed') stats.spd = s.base_stat;
           });
 
-          return { name: jaName, gen, t1, t2, preEvo, ...stats };
+          return { name: jaName, gen, t1, t2, preEvo, totalBs, ...stats };
         }
       }
       return null;
     }
 
     function convertTypeToJapanese(type) {
-      const types = { normal:"ノーマル", fire:"ほのお", water:"みず", grass:"くさ", electric:"でんき", ice:"こおり", fighting:"かくとう", poison:"どく", ground:"じめん", flying:"ひこう", psychic:"エスパー", bug:"むし", rock:"いわ", ghost:"ゴースト", dragon:"ドラゴン", steel:"はがね", fairy:"フェアリー" };
+      const types = { normal:"ノーマル", fire:"ほのお", water:"みず", grass:"くさ", electric:"でんき", ice:"こおり", fighting:"かくとう", poison:"どく", ground:"じめん", flying:"ひこう", psychic:"エスパー", bug:"むむし", rock:"いわ", ghost:"ゴースト", dragon:"ドラゴン", steel:"はがね", fairy:"フェアリー" };
       return types[type] || type;
     }
 
@@ -178,12 +309,12 @@
       const surrenderBtn = document.getElementById('surrender-button');
       const statusMsg = document.getElementById('status-msg');
       const roomTitle = document.getElementById('room-title');
-      const historyRows = document.getElementById('history-rows');
+      const historyBox = document.getElementById('history-box');
       const turnIndicator = document.getElementById('turn-indicator');
       const playerIdBadge = document.getElementById('player-id-badge');
 
       let currentRoomCode = null;
-      let playerNumber = null; // 1〜4の番号
+      let playerNumber = null;
       let totalPlayers = 1;
       let currentTurn = 1;
       let targetPokemon = null; 
@@ -191,26 +322,19 @@
       function startRoom(roomCode, pNum) {
         currentRoomCode = roomCode;
         playerNumber = pNum;
-        roomTitle.innerText = `対戦中部屋: ${roomCode}`;
-        playerIdBadge.innerText = `あなたは: プレイヤー ${playerNumber} (P${playerNumber})`;
+        roomTitle.innerText = `部屋: ${roomCode}`;
+        playerIdBadge.innerText = `プレイヤー ${playerNumber} (P${playerNumber})`;
         lobbyScreen.classList.add('hidden');
         gameScreen.classList.remove('hidden');
 
-        // 正解データの監視
         database.ref('rooms/' + roomCode + '/target').on('value', (snapshot) => {
-          if (snapshot.exists()) {
-            targetPokemon = snapshot.val();
-          }
+          if (snapshot.exists()) { targetPokemon = snapshot.val(); }
         });
 
-        // 参加人数（総プレイヤー数）の監視
         database.ref('rooms/' + roomCode + '/playerCount').on('value', (snapshot) => {
-          if (snapshot.exists()) {
-            totalPlayers = snapshot.val();
-          }
+          if (snapshot.exists()) { totalPlayers = snapshot.val(); }
         });
 
-        // 現在のターンの監視とロック制御
         database.ref('rooms/' + roomCode + '/currentTurn').on('value', (snapshot) => {
           if (snapshot.exists()) {
             currentTurn = snapshot.val();
@@ -218,25 +342,25 @@
           }
         });
 
-        // 降参状態の監視
         database.ref('rooms/' + roomCode + '/surrendered').on('value', (snapshot) => {
           if (snapshot.exists() && snapshot.val().status === true) {
             const info = snapshot.val();
             alert(`🏳️ P${info.by}が降参しました！\n正解は【 ${info.answer} 】でした！`);
             turnIndicator.innerText = `ゲーム終了（正解: ${info.answer}）`;
             guessBtn.disabled = true;
-            surrenderBtn.disabled = true;
+            guessInput.disabled = true;
           }
         });
 
-        // 推理履歴の監視（新しいものを上に表示）
+        // 履歴を監視（常に新しく生成されたカードを一番上(先頭)に挿入していく）
         database.ref('rooms/' + roomCode + '/guesses').on('value', (snapshot) => {
-          historyRows.innerHTML = ""; 
+          historyBox.innerHTML = ""; 
           if (snapshot.exists()) {
             const guesses = Object.values(snapshot.val());
-            // 逆順（新しい順）でループを回して上に追加していく
+            // 逆順ループで、新しいものから順にDOMカードを生成して追加
             for(let i = guesses.length - 1; i >= 0; i--) {
-              addResultRow(guesses[i]);
+              const isLatest = (i === guesses.length - 1); // 最新のカードだけ初期状態で開く
+              createResultCard(guesses[i], isLatest);
             }
           }
         });
@@ -245,111 +369,134 @@
       function updateTurnUI() {
         if (currentTurn === playerNumber) {
           turnIndicator.innerText = "🔴 あなたのターンです！予想を入力してください。";
-          turnIndicator.style.background = "#ffcdd2";
+          turnIndicator.style.background = "#c8e6c9";
           guessInput.disabled = false;
           guessBtn.disabled = false;
         } else {
           turnIndicator.innerText = `⏳ プレイヤー ${currentTurn} のターンを待っています...`;
-          turnIndicator.style.background = "#e3f2fd";
+          turnIndicator.style.background = "#fff";
           guessInput.disabled = true;
           guessBtn.disabled = true;
         }
       }
 
-      // 次のプレイヤーにターンを回す処理
       function proceedToNextTurn() {
         let nextTurn = currentTurn + 1;
-        if (nextTurn > totalPlayers) {
-          nextTurn = 1; // 1番に戻る
-        }
+        if (nextTurn > totalPlayers) { nextTurn = 1; }
         database.ref('rooms/' + currentRoomCode).update({ currentTurn: nextTurn });
       }
 
-      // 行を追加してWordle判定をする関数
-      function addResultRow(guess) {
+      // ⑤ ⑥ ⑦ タイル状情報カード＆アコーディオンUIの生成
+      function createResultCard(guess, isLatest) {
         if (!targetPokemon) return;
-        const tr = document.createElement('tr');
 
-        // 名前
-        const tdName = document.createElement('td');
-        tdName.innerText = guess.name;
-        if(guess.name === targetPokemon.name) tdName.classList.add('match-correct');
-        tr.appendChild(tdName);
+        const card = document.createElement('div');
+        card.classList.add('result-card');
 
-        // 世代比較
-        const tdGen = document.createElement('td');
-        tdGen.innerText = guess.gen;
-        tdGen.classList.add(guess.gen === targetPokemon.gen ? 'match-correct' : 'match-wrong');
-        tr.appendChild(tdGen);
-
-        // タイプ1・タイプ2判定
-        const targetTypes = [targetPokemon.t1, targetPokemon.t2];
+        // ③ カードヘッダーの構築
+        const header = document.createElement('div');
+        header.classList.add('card-header');
         
-        const tdT1 = document.createElement('td');
-        tdT1.innerText = guess.t1;
-        if(guess.t1 === targetPokemon.t1) tdT1.classList.add('match-correct');
-        else if(targetTypes.includes(guess.t1)) tdT1.classList.add('match-partial');
-        else tdT1.classList.add('match-wrong');
-        tr.appendChild(tdT1);
+        const icon = document.createElement('div');
+        icon.classList.add('poke-icon');
+        icon.innerText = "🐾"; // 固定アイコン
 
-        const tdT2 = document.createElement('td');
-        tdT2.innerText = guess.t2;
-        if(guess.t2 === targetPokemon.t2) tdT2.classList.add('match-correct');
-        else if(targetTypes.includes(guess.t2) && guess.t2 !== "なし") tdT2.classList.add('match-partial');
-        else tdT2.classList.add('match-wrong');
-        tr.appendChild(tdT2);
+        const nameSpan = document.createElement('span');
+        nameSpan.classList.add('poke-name');
+        nameSpan.innerText = guess.name;
 
-        // 進化前の数 比較
-        const tdPreEvo = document.createElement('td');
-        if (guess.preEvo === targetPokemon.preEvo) {
-          tdPreEvo.innerText = `${guess.preEvo} 🟩`;
-          tdPreEvo.classList.add('match-correct');
-        } else if (guess.preEvo < targetPokemon.preEvo) {
-          tdPreEvo.innerText = `${guess.preEvo} ⬆️`;
-          tdPreEvo.classList.add('direction-up');
-        } else {
-          tdPreEvo.innerText = `${guess.preEvo} ⬇️`;
-          tdPreEvo.classList.add('direction-down');
-        }
-        tr.appendChild(tdPreEvo);
+        const toggleBtn = document.createElement('span');
+        toggleBtn.classList.add('toggle-btn');
+        toggleBtn.innerText = isLatest ? "▲" : "▼";
 
-        // 各種族値の比較ヘルパー
-        const compareStat = (guessVal, targetVal) => {
-          const td = document.createElement('td');
-          if (guessVal === targetVal) {
-            td.innerText = `${guessVal} 🟩`;
-            td.classList.add('match-correct');
-          } else if (guessVal < targetVal) {
-            td.innerText = `${guessVal} ⬆️`;
-            td.classList.add('direction-up');
-          } else {
-            td.innerText = `${guessVal} ⬇️`;
-            td.classList.add('direction-down');
-          }
-          return td;
-        };
+        header.appendChild(icon);
+        header.appendChild(nameSpan);
+        header.appendChild(toggleBtn);
+        card.appendChild(header);
 
-        tr.appendChild(compareStat(guess.hp, targetPokemon.hp));
-        tr.appendChild(compareStat(guess.atk, targetPokemon.atk));
-        tr.appendChild(compareStat(guess.def, targetPokemon.def));
-        tr.appendChild(compareStat(guess.satk, targetPokemon.satk));
-        tr.appendChild(compareStat(guess.sdef, targetPokemon.sdef));
-        tr.appendChild(compareStat(guess.spd, targetPokemon.spd));
+        // ④ ⑤ 情報グリッド（アコーディオンボディ）
+        const body = document.createElement('div');
+        body.classList.add('card-body');
+        if (!isLatest) { body.classList.add('hidden'); } // 最新以外は最初閉じる
 
-        // insertBeforeを使って常に一番上（先頭）に行を追加する
-        if (historyRows.firstChild) {
-          historyRows.insertBefore(tr, historyRows.firstChild);
-        } else {
-          historyRows.appendChild(tr);
-        }
+        // 各種判定ヘルパー関数
+        const getMatchClass = (gVal, tVal) => (gVal === tVal ? 'status-correct' : 'status-wrong');
+        const getArrowClass = (gVal, tVal) => (gVal === tVal ? '' : (gVal < tVal ? ' direction-up' : ' direction-down'));
+        
+        // タイプ判定
+        const targetTypes = [targetPokemon.t1, targetPokemon.t2];
+        const getT1Class = () => (guess.t1 === targetPokemon.t1 ? 'status-correct' : (targetTypes.includes(guess.t1) ? 'status-partial' : 'status-wrong'));
+        const getT2Class = () => (guess.t2 === targetPokemon.t2 ? 'status-correct' : (targetTypes.includes(guess.t2) && guess.t2 !== "なし" ? 'status-partial' : 'status-wrong'));
 
-        // 完全に正解が出た場合の終了アラート
+        // タイルのHTML生成
+        body.innerHTML = `
+          <!-- 初登場作品 & 合計種族値 -->
+          <div class="grid-row-2">
+            <div class="tile ${getMatchClass(guess.gen, targetPokemon.gen)}">
+              <span class="tile-label">初登場作品</span>第${guess.gen}世代
+            </div>
+            <div class="tile ${getMatchClass(guess.totalBs, targetPokemon.totalBs)}${getArrowClass(guess.totalBs, targetPokemon.totalBs)}">
+              <span class="tile-label">合計種族値</span>${guess.totalBs}
+            </div>
+          </div>
+          <!-- タイプ1 & タイプ2 -->
+          <div class="grid-row-2">
+            <div class="tile ${getT1Class()}">
+              <span class="tile-label">タイプ1</span>${guess.t1}
+            </div>
+            <div class="tile ${getT2Class()}">
+              <span class="tile-label">タイプ2</span>${guess.t2}
+            </div>
+          </div>
+          <!-- 進化前の数 -->
+          <div class="grid-row-full">
+            <div class="tile ${getMatchClass(guess.preEvo, targetPokemon.preEvo)}${getArrowClass(guess.preEvo, targetPokemon.preEvo)}">
+              <span class="tile-label">進化前の数</span>${guess.preEvo}匹
+            </div>
+          </div>
+          <!-- 各種族値タイル（3列×2行のように綺麗に分配） -->
+          <div class="grid-row-2">
+            <div class="tile ${getMatchClass(guess.hp, targetPokemon.hp)}${getArrowClass(guess.hp, targetPokemon.hp)}">
+              <span class="tile-label">HP</span>${guess.hp}
+            </div>
+            <div class="tile ${getMatchClass(guess.atk, targetPokemon.atk)}${getArrowClass(guess.atk, targetPokemon.atk)}">
+              <span class="tile-label">攻撃</span>${guess.atk}
+            </div>
+          </div>
+          <div class="grid-row-2">
+            <div class="tile ${getMatchClass(guess.def, targetPokemon.def)}${getArrowClass(guess.def, targetPokemon.def)}">
+              <span class="tile-label">防御</span>${guess.def}
+            </div>
+            <div class="tile ${getMatchClass(guess.satk, targetPokemon.satk)}${getArrowClass(guess.satk, targetPokemon.satk)}">
+              <span class="tile-label">特攻</span>${guess.satk}
+            </div>
+          </div>
+          <div class="grid-row-2">
+            <div class="tile ${getMatchClass(guess.sdef, targetPokemon.sdef)}${getArrowClass(guess.sdef, targetPokemon.sdef)}">
+              <span class="tile-label">特防</span>${guess.sdef}
+            </div>
+            <div class="tile ${getMatchClass(guess.spd, targetPokemon.spd)}${getArrowClass(guess.spd, targetPokemon.spd)}">
+              <span class="tile-label">素早さ</span>${guess.spd}
+            </div>
+          </div>
+        `;
+        card.appendChild(body);
+
+        // クリックで開閉するイベント（④ アコーディオン）
+        header.addEventListener('click', () => {
+          const isHidden = body.classList.toggle('hidden');
+          toggleBtn.innerText = isHidden ? "▼" : "▲";
+        });
+
+        // コンテナの一番上に追加
+        historyBox.appendChild(card);
+
+        // 完全に正解が出た場合のアラート
         if (guess.name === targetPokemon.name) {
           setTimeout(() => { alert(`🎉 【${guess.name}】が正解です！ゲームクリア！`); }, 500);
         }
       }
 
-      // ホストがお題を決定する処理
       async function setupTargetPokemon(roomCode) {
         const randomId = Math.floor(Math.random() * 151) + 1;
         const pokeRes = await fetch(`https://pokeapi.co/api/v2/pokemon/${randomId}`);
@@ -362,8 +509,10 @@
         const t2 = pokeData.types[1] ? convertTypeToJapanese(pokeData.types[1].type.name) : "なし";
         const preEvo = preEvolutionCountMap[jaName] !== undefined ? preEvolutionCountMap[jaName] : 0;
         
+        let totalBs = 0;
         const stats = {};
         pokeData.stats.forEach(s => {
+          totalBs += s.base_stat;
           if(s.stat.name === 'hp') stats.hp = s.base_stat;
           if(s.stat.name === 'attack') stats.atk = s.base_stat;
           if(s.stat.name === 'defense') stats.def = s.base_stat;
@@ -373,32 +522,28 @@
         });
 
         await database.ref('rooms/' + roomCode + '/target').set({
-          name: jaName, gen: 1, t1, t2, preEvo, ...stats
+          name: jaName, gen: 1, t1, t2, preEvo, totalBs, ...stats
         });
       }
 
-      // 「コード生成」ボタン（ホスト = プレイヤー1）
       if (createBtn) {
         createBtn.addEventListener('click', () => {
           const randomCode = Math.floor(100000 + Math.random() * 900000).toString();
           codeDisplay.innerText = randomCode;
           statusMsg.innerText = "部屋を作成しました。友達が参加したらゲーム画面へ進みます。";
 
-          // 初期データ作成（自分が1人目なので playerCount: 1、最初のターンは1）
           database.ref('rooms/' + randomCode).set({
             playerCount: 1,
             currentTurn: 1,
             surrendered: { status: false }
           });
 
-          // お題をセットしてから部屋に入る
           setupTargetPokemon(randomCode).then(() => {
             startRoom(randomCode, 1);
           });
         });
       }
 
-      // 「参加する」ボタン（ゲスト = プレイヤー2〜4）
       if (joinBtn) {
         joinBtn.addEventListener('click', () => {
           const enteredCode = joinInput.value.trim();
@@ -415,10 +560,7 @@
                   return; 
                 }
                 const myNumber = (currentCount || 1) + 1;
-                // トランザクション成功後に部屋に入る
-                setTimeout(() => {
-                  startRoom(enteredCode, myNumber);
-                }, 100);
+                setTimeout(() => { startRoom(enteredCode, myNumber); }, 100);
                 return myNumber;
               });
             } else {
@@ -428,15 +570,14 @@
         });
       }
 
-      // GUESSボタンを押した時の判定処理
       if (guessBtn) {
         guessBtn.addEventListener('click', async () => {
-          if (currentTurn !== playerNumber) return; // 自分のターンじゃなければ無視
+          if (currentTurn !== playerNumber) return;
 
           const userGuessName = guessInput.value.trim();
           if (!userGuessName) return alert("ポケモンの名前を入力してください。");
 
-          guessBtn.innerText = "検索中...";
+          guessBtn.innerText = "⏳";
           guessBtn.disabled = true;
 
           const guessData = await fetchPokemonDataByName(userGuessName);
@@ -448,18 +589,13 @@
             return;
           }
 
-          // Firebaseの履歴にプッシュ
           database.ref('rooms/' + currentRoomCode + '/guesses').push(guessData);
-
           guessInput.value = "";
           guessBtn.innerText = "GUESS";
-          
-          // 自分の行動が終わったので次の人にターンを回す
           proceedToNextTurn();
         });
       }
 
-      // 降参ボタンを押した時の処理
       if (surrenderBtn) {
         surrenderBtn.addEventListener('click', () => {
           if (!targetPokemon) return;
