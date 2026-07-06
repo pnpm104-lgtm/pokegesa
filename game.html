@@ -3,53 +3,122 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GAME | Poke Guesser</title>
-    <link rel="stylesheet" href="./GAME _ Poke Guesser_files/style.css">
-    <link rel="icon" href="https://zukan.pokemon.co.jp/img/ball.svg">
+    <title>Poke Guesser - 対戦ロビー</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .vlobby-card {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        h4 {
+            margin: 10px 0;
+            color: #444;
+        }
+        p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .vlobby-code-box {
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff0f1;
+            border-radius: 8px;
+        }
+        #vs-my-code {
+            font-size: 2.5rem;
+            font-weight: bold;
+            letter-spacing: 4px;
+            color: #ff5a5f;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #vs-create {
+            background: #ff5a5f;
+            color: white;
+        }
+        #vs-create:hover {
+            background: #e0484c;
+        }
+        input {
+            font-size: 1.5rem;
+            padding: 10px;
+            width: 80%;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        input:focus {
+            border-color: #ff5a5f;
+            outline: none;
+        }
+        #vs-join {
+            background: #333;
+            color: white;
+        }
+        #vs-join:hover {
+            background: #222;
+        }
+        hr {
+            margin: 30px 0;
+            border: 0;
+            border-top: 1px dashed #ccc;
+        }
+    </style>
 </head>
 <body>
-    <header id="app-header">
-        <a class="logo" href="#">Poke <span class="logo-accent">Guesser</span></a>
-    </header>
-    <div id="theme-container">
-        <main id="main-content">
-            <div id="game-container">
-                <div id="game-header-area">
-                    <h2 id="game-title">対戦モード (カスタム)</h2>
-                </div>
-                
-                <div id="versus-lobby-area">
-                    <div class="vlobby-card" style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; text-align: center;">
-                        <section class="vlobby-panel vlobby-create">
-                            <h4 class="vlobby-panel-title" style="font-size: 1.2rem; margin-bottom: 10px;">ルームを作成</h4>
-                            <p class="vlobby-panel-description" style="color: #666; font-size: 0.9rem;">表示されたコードを友達に共有してください</p>
-                            <div class="vlobby-code" style="margin: 20px 0;">
-                                <span id="vs-my-code" style="font-size: 2.5rem; font-weight: bold; letter-spacing: 4px; color: #ff5a5f;">------</span>
-                            </div>
-                            <div class="vlobby-actions">
-                                <button id="vs-create" style="background: #ff5a5f; color: white; border: none; padding: 12px 24px; font-size: 1rem; border-radius: 4px; cursor: pointer; font-weight: bold;">コード生成</button>
-                            </div>
-                        </section>
-                        
-                        <hr style="margin: 30px 0; border: 0; border-top: 1px dashed #ccc;">
-                        
-                        <section class="vlobby-panel vlobby-join">
-                            <h4 class="vlobby-panel-title" style="font-size: 1.2rem; margin-bottom: 10px;">ルームに参加</h4>
-                            <p class="vlobby-panel-description" style="color: #666; font-size: 0.9rem;">友達のコード（数字6桁）を入力してください</p>
-                            <div class="vlobby-join-input" style="margin: 15px 0;">
-                                <input id="vs-code" style="font-size: 1.5rem; padding: 8px; width: 80%; text-align: center; border: 1px solid #ccc; border-radius: 4px;" inputmode="numeric" maxlength="6" placeholder="123456">
-                            </div>
-                            <div class="vlobby-actions">
-                                <button id="vs-join" style="background: #333; color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 4px; cursor: pointer;">参加する</button>
-                            </div>
-                        </section>
-                    </div>
-                </div>
+
+    <div class="vlobby-card">
+        <h2>対戦モード (カスタム)</h2>
+        
+        <!-- ルーム作成エリア -->
+        <section class="vlobby-panel vlobby-create">
+            <h4>ルームを作成</h4>
+            <p>表示されたコードを友達に共有してください</p>
+            <div class="vlobby-code-box">
+                <span id="vs-my-code">------</span>
             </div>
-        </main>
+            <button id="vs-create">コード生成</button>
+        </section>
+        
+        <hr>
+        
+        <!-- ルーム参加エリア -->
+        <section class="vlobby-panel vlobby-join">
+            <h4>ルームに参加</h4>
+            <p>友達のコード（数字6桁）を入力してください</p>
+            <input id="vs-code" inputmode="numeric" maxlength="6" placeholder="123456">
+            <button id="vs-join">参加する</button>
+        </section>
     </div>
 
-    <!-- 動きを付けるプログラム -->
+    <!-- 動かすためのプログラム -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const createBtn = document.getElementById('vs-create');
@@ -60,7 +129,6 @@
             // 「コード生成」ボタンを押したときの動き
             if (createBtn && codeDisplay) {
                 createBtn.addEventListener('click', () => {
-                    // ランダムな6桁の数字を作る
                     const randomCode = Math.floor(100000 + Math.random() * 900000);
                     codeDisplay.innerText = randomCode;
                     alert("部屋を作りました！コード: " + randomCode + " を友達に伝えてください。");
@@ -72,7 +140,7 @@
                 joinBtn.addEventListener('click', () => {
                     const enteredCode = joinInput.value.trim();
                     if (enteredCode.length === 6 && !isNaN(enteredCode)) {
-                        alert("部屋コード " + enteredCode + " に参加しました！対戦を始めます。");
+                        alert("部屋コード " + enteredCode + " に参加しました！ゲームを開始します。");
                     } else {
                         alert("正しい6桁の数字を入力してください。");
                     }
