@@ -22,15 +22,11 @@ function startMode(mode) {
     Handlers.onStartStats();
     return;
   }
-  // ★ ここをシンプルに書き換えました！
+  
+  // ✨ ここを完全に書き換えました！
+  // 対戦モード（versus）なら、難しいチェックを無視して強制的に対戦画面（ゲームコンテナ）を開きます
   if (mode === "versus") {
-    if (typeof Handlers.onStartVersus === "function") {
-      Handlers.onStartVersus();
-    } else {
-      // もし game.js 側で処理が用意されていなくても、
-      // 画面をゲームコンテナ（対戦画面）に切り替える処理を動かします
-      initGame({ initialScreen: "game-container" });
-    }
+    initGame({ initialScreen: "game-container" });
   }
 }
 
