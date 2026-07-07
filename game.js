@@ -117,10 +117,30 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 3. ゲーム開始画面への切り替え処理（仮）
-  // ==========================================
-  function startGame(roomCode, role) {
-    alert(`${role === 'host' ? 'ゲストが参加しました！' : 'ルームに参加しました！'} 対戦を開始します！(Room: ${roomCode})`);
+// 3. ゲーム開始画面への切り替え処理
+// ==========================================
+function startGame(roomCode, role) {
+  alert(`${role === 'host' ? 'ゲストが参加しました！' : 'ルームに参加しました！'} 対戦を開始します！(Room: ${roomCode})`);
+  
+  // HTML側のID名を使って、ロビーとクイズ画面を特定する
+  const lobbyScreen = document.getElementById('lobby-screen');
+  const quizScreen = document.getElementById('quiz-screen');
+  
+  // ロビー画面に 'hidden' クラスを追加して非表示にする
+  if (lobbyScreen) {
+    lobbyScreen.classList.add('hidden');
+  } else {
+    console.error("lobby-screen が見つかりません");
   }
+  
+  // クイズ画面から 'hidden' クラスを削除して表示する
+  if (quizScreen) {
+    quizScreen.classList.remove('hidden');
+    // もし既存のクイズ開始関数（例: startQuiz() など）があれば、ここで呼び出すとクイズが始まります
+    // if (typeof startQuiz === 'function') startQuiz();
+  } else {
+    console.error("quiz-screen が見つかりません");
+  }
+}
 
 });
