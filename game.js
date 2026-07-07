@@ -1,6 +1,12 @@
-// Firebaseの初期設定（もしHTML側で初期化していない場合は、ここに記述するかHTML側で完了させてください）
-// ※ db変数（firebase.database()）がすでに他で定義されている場合は、以下の行は不要です。
-const db = firebase.database();
+// ==========================================
+// データベース変数を安全に取得する関数
+// ==========================================
+function getDatabase() {
+  if (typeof firebase !== 'undefined') {
+    return firebase.database();
+  }
+  return null;
+}
 
 // ==========================================
 // 1. ルーム作成（ホスト側）の処理
@@ -22,22 +28,27 @@ if (createBtn) {
       statusMsg.textContent = "ルームを作成しました。対戦相手を待っています...";
     }
 
-    // Firebaseにルームを作成し、statusを'waiting'にする
-    const roomRef = db.ref('rooms/' + generatedCode);
-    roomRef.set({
-      status: 'waiting',
-      createdAt: firebase.database.ServerValue.TIMESTAMP
-    });
+    const db = getDatabase();
+    if (db) {
+      // Firebaseにルームを作成し、statusを'waiting'にする
+      const roomRef = db.ref('rooms/' + generatedCode);
+      roomRef.set({
+        status: 'waiting',
+        createdAt: firebase.database.ServerValue.TIMESTAMP
+      });
 
-    // 相手が参加してくるのをリアルタイムに監視（statusが'playing'に変わったらスタート）
-    roomRef.on('value', (snapshot) => {
-      const roomData = snapshot.val();
-      if (roomData && roomData.status === 'playing') {
-        // 監視を解除してゲーム画面へ遷移
-        roomRef.off();
-        startGame(generatedCode, 'host');
-      }
-    });
+      // 相手が参加してくるのをリアルタイムに監視（statusが'playing'に変わったらスタート）
+      roomRef.on('value', (snapshot) => {
+        const roomData = snapshot.val();
+        if (roomData && roomData.status === 'playing') {
+          // 監視を解除してゲーム画面へ遷移
+          roomRef.off();
+          startGame(generatedCode, 'host');
+        }
+      });
+    } else {
+      console.warn("Firebaseが読み込まれていないため、ローカル表示のみ行いました。");
+    }
 
     console.log("Generated Room Code:", generatedCode);
   });
@@ -58,6 +69,12 @@ if (joinBtn) {
     // 入力チェック（3桁の数字かどうか）
     if (enteredCode.length !== 3 || isNaN(enteredCode)) {
       alert("3桁の数字を入力してください。");
+      return;
+    }
+
+    const db = getDatabase();
+    if (!db) {
+      alert("通信環境の準備ができていません。");
       return;
     }
 
@@ -90,9 +107,4 @@ if (joinBtn) {
 // ==========================================
 function startGame(roomCode, role) {
   alert(`${role === 'host' ? 'ゲストが参加しました！' : 'ルームに参加しました！'} 対戦を開始します！(Room: ${roomCode})`);
-  
-  // ここに「ロビーを非表示にしてクイズエリアを表示する」などの画面切り替えロジックを入れます
-  // 例:
-  // document.getElementById('lobby-screen').classList.add('hidden');
-  // document.getElementById('quiz-screen').classList.remove('hidden');
 }
