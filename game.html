@@ -229,27 +229,31 @@
 
   <!-- クイズ対戦画面エリア（ゲーム開始後に JavaScript で hidden を外して表示） -->
   <div id="quiz-screen" class="quiz-area hidden">
-    <!-- ここに既存のクイズ画面の要素（問題文や選択肢ボタンなど）があれば入れてください -->
+    <!-- ここに既存のクイズ画面の要素があれば入ります -->
   </div>
 
-  <!-- Firebase ライブラリの読み込み（お使いのバージョンに合わせて調整してください） -->
+  <!-- Firebase v9 Compat版 ライブラリの読み込み -->
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
 
-  <!-- Firebaseの初期化設定スクリプト（あなたのプロジェクトのConfigを入れてください） -->
+  <!-- 【修正】Firebaseの初期化設定（本物のConfigを直接埋め込み） -->
   <script>
-    // ※ すでに index.html 等で初期化している、または不要な場合は適宜書き換えてください
     const firebaseConfig = {
-      // apiKey: "YOUR_API_KEY",
-      // databaseURL: "YOUR_DATABASE_URL",
-      // ...
+      apiKey: "AIzaSyAt9sD_1d2oiV7ezuwU8fcfdh5sCGft9x0",
+      authDomain: "pokegesa-66564.firebaseapp.com",
+      databaseURL: "https://pokegesa-66564-default-rtdb.firebaseio.com",
+      projectId: "pokegesa-66564",
+      storageBucket: "pokegesa-66564.firebasestorage.app",
+      messagingSenderId: "666509842476",
+      appId: "1:666509842476:web:5d120f90f615bec0719989",
+      measurementId: "G-VBQ82PFLF3"
     };
-    if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
-      firebase.initializeApp(firebaseConfig);
-    }
+
+    // Firebaseの初期化を実行
+    firebase.initializeApp(firebaseConfig);
   </script>
 
-  <!-- ★ここが重要！HTMLの要素をすべて作り終えた「一番最後」にロジックファイルを読み込みます -->
+  <!-- モジュール版（import〜）のJSは読み込まず、Compat版で動くgame.jsのみを読み込みます -->
   <script src="game.js"></script>
 
 </body>
