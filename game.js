@@ -8,20 +8,14 @@ window.addEventListener('DOMContentLoaded', () => {
   const codeInput = document.getElementById('vs-code');
   const statusMsg = document.getElementById('status-msg');
 
-  // 初期表示を4桁用（----）にし、入力制限も4桁（1234）にする
-  if (myCodeDisplay && myCodeDisplay.textContent === '---') {
+  if (myCodeDisplay && (myCodeDisplay.textContent === '---' || myCodeDisplay.textContent === '------')) {
     myCodeDisplay.textContent = '----';
   }
   if (codeInput) {
     codeInput.maxLength = 4;
     codeInput.placeholder = '1234';
-    if (codeInput.labels && codeInput.labels[0]) {
-      codeInput.labels[0].textContent = 'コード（数字4桁）を入力してください';
-    } else {
-      // 親要素や前後のテキストを置換
-      const p = codeInput.previousElementSibling;
-      if (p && p.tagName === 'P') p.textContent = 'コード（数字4桁）を入力してください';
-    }
+    const p = codeInput.previousElementSibling;
+    if (p && p.tagName === 'P') p.textContent = 'コード（数字4桁）を入力してください';
   }
 
   // Firebaseデータベースを安全に取得する関数
@@ -39,7 +33,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   if (createBtn) {
     createBtn.addEventListener('click', () => {
-      // 【修正】1000～9999の「4桁」のランダムな数字を生成
+      // 1000～9999の「4桁」のランダムな数字を生成
       const generatedCode = String(Math.floor(1000 + Math.random() * 9000));
       
       // 画面に4桁コードを表示
@@ -86,7 +80,7 @@ window.addEventListener('DOMContentLoaded', () => {
       
       const enteredCode = codeInput.value.trim();
 
-      // 【修正】入力チェックを「4桁の数字」に変更
+      // 入力チェックを「4桁の数字」に変更
       if (enteredCode.length !== 4 || isNaN(enteredCode)) {
         alert("4桁の数字を入力してください。");
         return;
