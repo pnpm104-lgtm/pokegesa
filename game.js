@@ -1,9 +1,30 @@
-// 画面の読み込みがすべて完了してから実行する
+// 画面の読み込みがすべて完了してから安全に実行する
 window.addEventListener('DOMContentLoaded', () => {
 
   // ==========================================
-  // データベース変数を安全に取得する関数
+  // 0. HTML側の設定を自動的に4桁用に調整
   // ==========================================
+  const myCodeDisplay = document.getElementById('vs-my-code');
+  const codeInput = document.getElementById('vs-code');
+  const statusMsg = document.getElementById('status-msg');
+
+  // 初期表示を4桁用（----）にし、入力制限も4桁（1234）にする
+  if (myCodeDisplay && myCodeDisplay.textContent === '---') {
+    myCodeDisplay.textContent = '----';
+  }
+  if (codeInput) {
+    codeInput.maxLength = 4;
+    codeInput.placeholder = '1234';
+    if (codeInput.labels && codeInput.labels[0]) {
+      codeInput.labels[0].textContent = 'コード（数字4桁）を入力してください';
+    } else {
+      // 親要素や前後のテキストを置換
+      const p = codeInput.previousElementSibling;
+      if (p && p.tagName === 'P') p.textContent = 'コード（数字4桁）を入力してください';
+    }
+  }
+
+  // Firebaseデータベースを安全に取得する関数
   function getDatabase() {
     if (typeof firebase !== 'undefined') {
       return firebase.database();
@@ -15,15 +36,13 @@ window.addEventListener('DOMContentLoaded', () => {
   // 1. ルーム作成（ホスト側）の処理
   // ==========================================
   const createBtn = document.getElementById('vs-create');
-  const myCodeDisplay = document.getElementById('vs-my-code');
-  const statusMsg = document.getElementById('status-msg');
 
   if (createBtn) {
     createBtn.addEventListener('click', () => {
-      // 100～999の「3桁」のランダムな数字を生成
-      const generatedCode = String(Math.floor(100 + Math.random() * 900));
+      // 【修正】1000～9999の「4桁」のランダムな数字を生成
+      const generatedCode = String(Math.floor(1000 + Math.random() * 9000));
       
-      // 画面に3桁コードを表示
+      // 画面に4桁コードを表示
       if (myCodeDisplay) {
         myCodeDisplay.textContent = generatedCode;
       }
@@ -33,14 +52,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
       const db = getDatabase();
       if (db) {
-        // Firebaseにルームを作成し、statusを'waiting'にする
+        // Firebaseに4桁のルームを作成
         const roomRef = db.ref('rooms/' + generatedCode);
         roomRef.set({
           status: 'waiting',
           createdAt: firebase.database.ServerValue.TIMESTAMP
         });
 
-        // 相手が参加してくるのをリアルタイムに監視
+        // 相手が参加してくるのを監視
         roomRef.on('value', (snapshot) => {
           const roomData = snapshot.val();
           if (roomData && roomData.status === 'playing') {
@@ -49,10 +68,10 @@ window.addEventListener('DOMContentLoaded', () => {
           }
         });
       } else {
-        console.warn("Firebaseが読み込まれていないため、ローカル表示のみ行いました。");
+        console.warn("Firebase未接続：画面上でのみ4桁コードを生成しました。");
       }
 
-      console.log("Generated Room Code:", generatedCode);
+      console.log("Generated 4-Digit Room Code:", generatedCode);
     });
   }
 
@@ -60,7 +79,6 @@ window.addEventListener('DOMContentLoaded', () => {
   // 2. ルーム参加（ゲスト側）の処理
   // ==========================================
   const joinBtn = document.getElementById('vs-join');
-  const codeInput = document.getElementById('vs-code');
 
   if (joinBtn) {
     joinBtn.addEventListener('click', () => {
@@ -68,9 +86,9 @@ window.addEventListener('DOMContentLoaded', () => {
       
       const enteredCode = codeInput.value.trim();
 
-      // 入力チェック（3桁の数字かどうか）
-      if (enteredCode.length !== 3 || isNaN(enteredCode)) {
-        alert("3桁の数字を入力してください。");
+      // 【修正】入力チェックを「4桁の数字」に変更
+      if (enteredCode.length !== 4 || isNaN(enteredCode)) {
+        alert("4桁の数字を入力してください。");
         return;
       }
 
@@ -80,14 +98,14 @@ window.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
-      // Firebaseで該当するルームがあるか確認
+      // Firebaseで4桁のルームがあるか確認
       const roomRef = db.ref('rooms/' + enteredCode);
       roomRef.once('value').then((snapshot) => {
         if (snapshot.exists()) {
           const roomData = snapshot.val();
           
           if (roomData.status === 'waiting') {
-            // ルームのステータスを'playing'（対戦中）に更新
+            // ルームのステータスを対戦中（playing）に更新
             roomRef.update({ status: 'playing' }).then(() => {
               console.log("ルームに参加成功！");
               startGame(enteredCode, 'guest');
