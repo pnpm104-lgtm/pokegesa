@@ -1,146 +1,218 @@
-// 画面の読み込みがすべて完了してから安全に実行する
-window.addEventListener('DOMContentLoaded', () => {
-
-  // ==========================================
-  // 0. HTML側の設定を自動的に4桁用に調整
-  // ==========================================
-  const myCodeDisplay = document.getElementById('vs-my-code');
-  const codeInput = document.getElementById('vs-code');
-  const statusMsg = document.getElementById('status-msg');
-
-  if (myCodeDisplay && (myCodeDisplay.textContent === '---' || myCodeDisplay.textContent === '------')) {
-    myCodeDisplay.textContent = '----';
-  }
-  if (codeInput) {
-    codeInput.maxLength = 4;
-    codeInput.placeholder = '1234';
-    const p = codeInput.previousElementSibling;
-    if (p && p.tagName === 'P') p.textContent = 'コード（数字4桁）を入力してください';
-  }
-
-  // Firebaseデータベースを安全に取得する関数
-  function getDatabase() {
-    if (typeof firebase !== 'undefined') {
-      return firebase.database();
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポケゲサ - 対戦ロビー</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      background-color: #e8f5e9;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
-    return null;
-  }
 
-  // ==========================================
-  // 1. ルーム作成（ホスト側）の処理
-  // ==========================================
-  const createBtn = document.getElementById('vs-create');
+    .vlobby-card, .quiz-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      margin-top: 30px;
+    }
 
-  if (createBtn) {
-    createBtn.addEventListener('click', () => {
-      // 1000～9999の「4桁」のランダムな数字を生成
-      const generatedCode = String(Math.floor(1000 + Math.random() * 9000));
-      
-      // 画面に4桁コードを表示
-      if (myCodeDisplay) {
-        myCodeDisplay.textContent = generatedCode;
-      }
-      if (statusMsg) {
-        statusMsg.textContent = "ルームを作成しました。対戦相手を待っています...";
-      }
+    .pokemon-banner {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    .pokemon-banner img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+    }
 
-      const db = getDatabase();
-      if (db) {
-        // Firebaseに4桁のルームを作成
-        const roomRef = db.ref('rooms/' + generatedCode);
-        roomRef.set({
-          status: 'waiting',
-          createdAt: firebase.database.ServerValue.TIMESTAMP
-        });
+    .lobby-header h2 {
+      color: #2e7d32;
+      margin: 0 0 5px 0;
+      font-size: 1.8rem;
+    }
+    .lobby-header .subtitle {
+      color: #555;
+      font-size: 0.95rem;
+      margin: 0 0 20px 0;
+    }
 
-        // 相手が参加してくるのを監視
-        roomRef.on('value', (snapshot) => {
-          const roomData = snapshot.val();
-          if (roomData && roomData.status === 'playing') {
-            roomRef.off(); // 監視を解除
-            startGame(generatedCode, 'host');
-          }
-        });
-      } else {
-        console.warn("Firebase未接続：画面上でのみ4桁コードを生成しました。");
-      }
+    h4 { margin: 10px 0 5px 0; font-size: 1.2rem; }
+    p { color: #666; font-size: 0.85rem; margin: 5px 0 15px 0; }
 
-      console.log("Generated 4-Digit Room Code:", generatedCode);
-    });
-  }
+    .lobby-btn, .choice-btn {
+      padding: 12px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      box-sizing: border-box;
+      transition: background 0.2s;
+    }
+    .main-input {
+      font-size: 1.8rem;
+      padding: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      text-align: center;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      letter-spacing: 4px;
+    }
 
-  // ==========================================
-  // 2. ルーム参加（ゲスト側）の処理
-  // ==========================================
-  const joinBtn = document.getElementById('vs-join');
+    .vlobby-create {
+      background-color: #fffde7;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #fff59d;
+    }
+    .vlobby-create h4 { color: #f57f17; }
+    .vlobby-code-box {
+      margin: 15px 0;
+      padding: 10px;
+      background: #fff;
+      border: 2px dashed #f57f17;
+      border-radius: 8px;
+    }
+    #vs-my-code {
+      font-size: 2.5rem;
+      font-weight: bold;
+      letter-spacing: 6px;
+      color: #f57f17;
+    }
+    #vs-create { background: #f57f17; color: white; }
+    #vs-create:hover { background: #e65100; }
 
-  if (joinBtn) {
-    joinBtn.addEventListener('click', () => {
-      if (!codeInput) return;
-      
-      const enteredCode = codeInput.value.trim();
+    .lobby-separator {
+      margin: 20px 0; position: relative; text-align: center;
+    }
+    .lobby-separator::before {
+      content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #ccc; z-index: 1;
+    }
+    .lobby-separator span {
+      background: #fff; padding: 0 15px; color: #777; font-weight: bold; font-size: 0.9rem; position: relative; z-index: 2;
+    }
 
-      // 入力チェックを「4桁の数字」に変更
-      if (enteredCode.length !== 4 || isNaN(enteredCode)) {
-        alert("4桁の数字を入力してください。");
-        return;
-      }
+    .vlobby-join {
+      background-color: #e3f2fd;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #90caf9;
+    }
+    .vlobby-join h4 { color: #0d47a1; }
+    #vs-join { background: #1e88e5; color: white; }
+    #vs-join:hover { background: #1565c0; }
 
-      const db = getDatabase();
-      if (!db) {
-        alert("通信環境の準備ができていません。");
-        return;
-      }
+    /* クイズ対戦画面のスタイル */
+    .quiz-area {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .choice-btn {
+      background: #f5f5f5;
+      border: 2px solid #ccc;
+      margin-bottom: 10px;
+      text-align: left;
+      padding-left: 20px;
+    }
+    .choice-btn:hover { background: #e0e0e0; }
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
 
-      // Firebaseで4桁のルームがあるか確認
-      const roomRef = db.ref('rooms/' + enteredCode);
-      roomRef.once('value').then((snapshot) => {
-        if (snapshot.exists()) {
-          const roomData = snapshot.val();
-          
-          if (roomData.status === 'waiting') {
-            // ルームのステータスを対戦中（playing）に更新
-            roomRef.update({ status: 'playing' }).then(() => {
-              console.log("ルームに参加成功！");
-              startGame(enteredCode, 'guest');
-            });
-          } else {
-            alert("このルームはすでに満員か、対戦が始まっています。");
-          }
-        } else {
-          alert("ルームが見つかりません。コードを確認してください。");
-        }
-      }).catch((error) => {
-        console.error("Error joining room:", error);
-      });
-    });
-  }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
 
-  // ==========================================
-// 3. ゲーム開始画面への切り替え処理
-// ==========================================
-function startGame(roomCode, role) {
-  alert(`${role === 'host' ? 'ゲストが参加しました！' : 'ルームに参加しました！'} 対戦を開始します！(Room: ${roomCode})`);
-  
-  // HTML側のID名を使って、ロビーとクイズ画面を特定する
-  const lobbyScreen = document.getElementById('lobby-screen');
-  const quizScreen = document.getElementById('quiz-screen');
-  
-  // ロビー画面に 'hidden' クラスを追加して非表示にする
-  if (lobbyScreen) {
-    lobbyScreen.classList.add('hidden');
-  } else {
-    console.error("lobby-screen が見つかりません");
-  }
-  
-  // クイズ画面から 'hidden' クラスを削除して表示する
-  if (quizScreen) {
-    quizScreen.classList.remove('hidden');
-    // もし既存のクイズ開始関数（例: startQuiz() など）があれば、ここで呼び出すとクイズが始まります
-    // if (typeof startQuiz === 'function') startQuiz();
-  } else {
-    console.error("quiz-screen が見つかりません");
-  }
-}
+  <!-- ロビー画面 -->
+  <div id="lobby-screen" class="vlobby-card">
+    <div class="pokemon-banner">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Pikachu">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" alt="Eevee">
+    </div>
 
-});
+    <div class="lobby-header">
+      <h2>対戦モード</h2>
+      <div class="subtitle"><strong>ルームを作成 or ルームに参加</strong></div>
+    </div>
+
+    <section class="vlobby-panel vlobby-create">
+      <h4>ルームを作成</h4>
+      <p>表示されたコードを共有してください</p>
+      <div class="vlobby-code-box"><span id="vs-my-code">----</span></div>
+      <button id="vs-create" class="lobby-btn">コード生成</button>
+      <div id="status-msg" style="color:#e65100; margin-top:8px; font-size:0.85rem;"></div>
+    </section>
+
+    <div class="lobby-separator"><span>OR</span></div>
+
+    <section class="vlobby-panel vlobby-join">
+      <h4>ルームに参加</h4>
+      <p>コード（数字4桁）を入力してください</p>
+      <input id="vs-code" class="main-input" inputmode="numeric" maxlength="4" placeholder="1234">
+      <button id="vs-join" class="lobby-btn">参加する</button>
+    </section>
+  </div>
+
+  <!-- クイズ対戦画面 -->
+  <div id="quiz-screen" class="quiz-card hidden">
+    <div class="score-board">
+      <div id="host-score-display">ホスト: 0点</div>
+      <div id="guest-score-display">ゲスト: 0点</div>
+    </div>
+    <h3 id="quiz-title">問題</h3>
+    <p id="quiz-hint" style="font-size: 1.1rem; font-weight: bold; color: #333;"></p>
+    
+    <div class="quiz-area">
+      <button class="choice-btn" id="btn-choice0">1. </button>
+      <button class="choice-btn" id="btn-choice1">2. </button>
+      <button class="choice-btn" id="btn-choice2">3. </button>
+      <button class="choice-btn" id="btn-choice3">4. </button>
+    </div>
+    <div id="game-status-msg" style="margin-top: 15px; font-weight: bold; color: #2e7d32;"></div>
+  </div>
+
+  <!-- Firebase v9 Compat版 -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAt9sD_1d2oiV7ezuwU8fcfdh5sCGft9x0",
+      authDomain: "pokegesa-66564.firebaseapp.com",
+      databaseURL: "https://pokegesa-66564-default-rtdb.firebaseio.com",
+      projectId: "pokegesa-66564",
+      storageBucket: "pokegesa-66564.firebasestorage.app",
+      messagingSenderId: "666509842476",
+      appId: "1:666509842476:web:5d120f90f615bec0719989",
+      measurementId: "G-VBQ82PFLF3"
+    };
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  <script src="game.js"></script>
+</body>
+</html>
