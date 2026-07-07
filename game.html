@@ -1,4 +1,10 @@
-<style>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ポケゲサ - 対戦ロビー</title>
+  <style>
     /* ⑦ 全体的なデザイン・落ち着いた配色（淡い緑色の背景） */
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -167,12 +173,20 @@
       font-size: 0.85rem;
     }
 
-    /* クイズ対戦画面（既存のスタイルは省略・維持） */
-    .quiz-area { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
-    .hidden { display: none !important; }
+    /* クイズ対戦画面（デフォルトは非表示） */
+    .quiz-area {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .hidden {
+      display: none !important;
+    }
   </style>
-
-  <!-- 中略（Firebaseスクリプトなど） -->
+</head>
+<body>
 
   <!-- ロビー画面 HTML -->
   <div id="lobby-screen" class="vlobby-card">
@@ -193,8 +207,7 @@
       <h4>ルームを作成</h4>
       <p>表示されたコードを共有してください</p>
       <div class="vlobby-code-box">
-        <!-- 3桁表示用に初期状態を「---」に変更 -->
-        <span id="vs-my-code">---</span>
+        <span id="vs-my-code">----</span>
       </div>
       <button id="vs-create" class="lobby-btn">コード生成</button>
       <div id="status-msg" style="color:#e65100;"></div>
@@ -208,9 +221,36 @@
     <!-- 4. ルームに参加（ゲスト側：青色セクション） -->
     <section class="vlobby-panel vlobby-join">
       <h4>ルームに参加</h4>
-      <p>コード（数字3桁）を入力してください</p>
-      <!-- 3桁入力用に maxlength を 3、placeholder を 123 に変更 -->
-      <input id="vs-code" class="main-input" inputmode="numeric" maxlength="3" placeholder="123">
+      <p>コード（数字4桁）を入力してください</p>
+      <input id="vs-code" class="main-input" inputmode="numeric" maxlength="4" placeholder="1234">
       <button id="vs-join" class="lobby-btn">参加する</button>
     </section>
   </div>
+
+  <!-- クイズ対戦画面エリア（ゲーム開始後に JavaScript で hidden を外して表示） -->
+  <div id="quiz-screen" class="quiz-area hidden">
+    <!-- ここに既存のクイズ画面の要素（問題文や選択肢ボタンなど）があれば入れてください -->
+  </div>
+
+  <!-- Firebase ライブラリの読み込み（お使いのバージョンに合わせて調整してください） -->
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+
+  <!-- Firebaseの初期化設定スクリプト（あなたのプロジェクトのConfigを入れてください） -->
+  <script>
+    // ※ すでに index.html 等で初期化している、または不要な場合は適宜書き換えてください
+    const firebaseConfig = {
+      // apiKey: "YOUR_API_KEY",
+      // databaseURL: "YOUR_DATABASE_URL",
+      // ...
+    };
+    if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+      firebase.initializeApp(firebaseConfig);
+    }
+  </script>
+
+  <!-- ★ここが重要！HTMLの要素をすべて作り終えた「一番最後」にロジックファイルを読み込みます -->
+  <script src="game.js"></script>
+
+</body>
+</html>
