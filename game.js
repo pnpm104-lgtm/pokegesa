@@ -37,17 +37,16 @@ if (createBtn) {
         createdAt: firebase.database.ServerValue.TIMESTAMP
       });
 
-      // 相手が参加してくるのをリアルタイムに監視（statusが'playing'に変わったらスタート）
+      // 相手が参加してくるのをリアルタイムに監視
       roomRef.on('value', (snapshot) => {
         const roomData = snapshot.val();
         if (roomData && roomData.status === 'playing') {
-          // 監視を解除してゲーム画面へ遷移
-          roomRef.off();
+          roomRef.off(); // 監視を解除
           startGame(generatedCode, 'host');
         }
       });
     } else {
-      console.warn("Firebaseが読み込まれていないため、ローカル表示のみ行いました。");
+      console.warn("Firebase未接続：ローカルでのみコードを生成しました。");
     }
 
     console.log("Generated Room Code:", generatedCode);
@@ -74,7 +73,7 @@ if (joinBtn) {
 
     const db = getDatabase();
     if (!db) {
-      alert("通信環境の準備ができていません。");
+      alert("通信環境（Firebase）の準備ができていません。");
       return;
     }
 
@@ -103,8 +102,15 @@ if (joinBtn) {
 }
 
 // ==========================================
-// 3. ゲーム開始画面への切り替え処理（仮）
+// 3. ゲーム開始画面への切り替え処理
 // ==========================================
 function startGame(roomCode, role) {
   alert(`${role === 'host' ? 'ゲストが参加しました！' : 'ルームに参加しました！'} 対戦を開始します！(Room: ${roomCode})`);
+  
+  // ロビー画面を隠してゲーム画面を出す
+  const lobbyScreen = document.getElementById('lobby-screen');
+  const quizArea = document.querySelector('.quiz-area');
+  
+  if (lobbyScreen) lobbyScreen.classList.add('hidden');
+  if (quizArea) quizArea.classList.remove('hidden');
 }
