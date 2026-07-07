@@ -1,12 +1,318 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
-    <title>Poke Guesser</title>
-    <!-- 開いた瞬間に、新しく作った game.html へ自動でジャンプさせる命令です -->
-    <meta http-equiv="refresh" content="0;URL=game.html">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokemon Guesser</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
 </head>
+
 <body>
-    <p>ゲーム画面に移動しています...</p>
+
+<header>
+
+    <h1>Pokemon Guesser</h1>
+
+    <div id="game-info">
+
+        <span id="remaining-count">
+            残り候補：---
+        </span>
+
+        <span id="guess-count">
+            回数：0
+        </span>
+
+    </div>
+
+</header>
+
+<main>
+
+<section id="settings">
+
+<h2>ゲーム設定</h2>
+
+<div class="setting-row">
+
+<label>
+
+世代
+
+<select id="generation-filter">
+
+<option value="all">すべて</option>
+<option value="1">第1世代</option>
+<option value="2">第2世代</option>
+<option value="3">第3世代</option>
+<option value="4">第4世代</option>
+<option value="5">第5世代</option>
+<option value="6">第6世代</option>
+<option value="7">第7世代</option>
+<option value="8">第8世代</option>
+<option value="9">第9世代</option>
+
+</select>
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+id="legendary-filter">
+
+伝説を除外
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+id="mythical-filter">
+
+幻を除外
+
+</label>
+
+<label>
+
+<input
+type="checkbox"
+id="final-filter">
+
+最終進化のみ
+
+</label>
+
+<button id="start-game">
+
+ゲーム開始
+
+</button>
+
+</div>
+
+</section>
+
+<section id="guess-section">
+
+<h2>ポケモンを入力</h2>
+
+<div class="search-box">
+
+<input
+
+type="text"
+
+id="pokemon-input"
+
+placeholder="ポケモン名"
+
+autocomplete="off"
+
+>
+
+<button id="guess-btn">
+
+予想
+
+</button>
+
+</div>
+
+<ul id="autocomplete-list">
+
+</ul>
+
+</section>
+
+<section id="history">
+
+<h2>履歴</h2>
+
+<div class="table-wrapper">
+
+<table id="history-table">
+
+<thead>
+
+<tr>
+
+<th>画像</th>
+
+<th>名前</th>
+
+<th>タイプ</th>
+
+<th>世代</th>
+
+<th>高さ</th>
+
+<th>重さ</th>
+
+<th>HP</th>
+
+<th>攻撃</th>
+
+<th>防御</th>
+
+<th>特攻</th>
+
+<th>特防</th>
+
+<th>素早さ</th>
+
+<th>合計</th>
+
+<th>特性</th>
+
+<th>進化</th>
+
+</tr>
+
+</thead>
+
+<tbody id="history-body">
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+<section id="answer-section" class="hidden">
+
+<h2>結果</h2>
+
+<div id="answer-card">
+
+<img
+
+id="answer-image"
+
+src=""
+
+alt="pokemon"
+
+>
+
+<h3 id="answer-name">
+
+</h3>
+
+<p id="answer-text">
+
+</p>
+
+<button id="next-game">
+
+もう一度遊ぶ
+
+</button>
+
+</div>
+
+</section>
+
+<section id="online-section">
+
+<h2>オンライン対戦</h2>
+
+<div class="online-container">
+
+<div>
+
+<h3>ルーム作成</h3>
+
+<button id="create-room">
+
+ルームを作成
+
+</button>
+
+<p>
+
+ルームコード：
+
+<span id="room-code">
+
+----
+
+</span>
+
+</p>
+
+</div>
+
+<div>
+
+<h3>ルーム参加</h3>
+
+<input
+
+type="text"
+
+maxlength="4"
+
+id="join-code"
+
+placeholder="1234"
+
+>
+
+<button id="join-room">
+
+参加
+
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="ranking">
+
+<h2>ランキング</h2>
+
+<ol id="ranking-list">
+
+</ol>
+
+</section>
+
+</main>
+
+<footer>
+
+<p>
+
+Pokemon Guesser
+
+</p>
+
+</footer>
+
+<script src="js/compare.js"></script>
+<script src="js/autocomplete.js"></script>
+<script src="js/filters.js"></script>
+<script src="js/game.js"></script>
+<script src="js/firebase.js"></script>
+<script src="js/ui.js"></script>
+
+<script src="app.js"></script>
+
 </body>
+
 </html>
