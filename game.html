@@ -18,13 +18,13 @@
 
     .vlobby-card, .quiz-card {
       background: #fff;
-      padding: 30px;
+      padding: 25px;
       border-radius: 12px;
       box-shadow: 0 8px 16px rgba(0,0,0,0.05);
-      max-width: 400px;
+      max-width: 450px;
       width: 90%;
       text-align: center;
-      margin-top: 30px;
+      margin-top: 20px;
     }
 
     .pokemon-banner {
@@ -53,7 +53,7 @@
     h4 { margin: 10px 0 5px 0; font-size: 1.2rem; }
     p { color: #666; font-size: 0.85rem; margin: 5px 0 15px 0; }
 
-    .lobby-btn, .choice-btn {
+    .lobby-btn, .game-btn {
       padding: 12px;
       font-size: 1rem;
       font-weight: bold;
@@ -65,7 +65,7 @@
       transition: background 0.2s;
     }
     .main-input {
-      font-size: 1.8rem;
+      font-size: 1.5rem;
       padding: 10px;
       width: 100%;
       box-sizing: border-box;
@@ -73,7 +73,6 @@
       border: 2px solid #ddd;
       border-radius: 6px;
       margin-bottom: 15px;
-      letter-spacing: 4px;
     }
 
     .vlobby-create {
@@ -97,7 +96,6 @@
       color: #f57f17;
     }
     #vs-create { background: #f57f17; color: white; }
-    #vs-create:hover { background: #e65100; }
 
     .lobby-separator {
       margin: 20px 0; position: relative; text-align: center;
@@ -117,32 +115,56 @@
     }
     .vlobby-join h4 { color: #0d47a1; }
     #vs-join { background: #1e88e5; color: white; }
-    #vs-join:hover { background: #1565c0; }
 
-    /* クイズ対戦画面のスタイル */
-    .quiz-area {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-      margin-top: 15px;
-    }
-    .choice-btn {
-      background: #f5f5f5;
-      border: 2px solid #ccc;
-      margin-bottom: 10px;
-      text-align: left;
-      padding-left: 20px;
-    }
-    .choice-btn:hover { background: #e0e0e0; }
+    /* --- 対戦ゲーム画面のスタイル --- */
     .score-board {
       display: flex;
       justify-content: space-between;
       background: #f0f0f0;
-      padding: 10px;
+      padding: 12px;
       border-radius: 6px;
       font-weight: bold;
       margin-bottom: 15px;
+      font-size: 1.1rem;
     }
+    .game-input-area {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+    #pokemon-guess-input {
+      flex: 1;
+      padding: 10px;
+      font-size: 1.1rem;
+      border: 2px solid #ccc;
+      border-radius: 6px;
+    }
+    #guess-submit-btn {
+      width: auto;
+      padding: 10px 20px;
+      background: #2e7d32;
+      color: white;
+    }
+    
+    /* 判定結果の履歴テーブル */
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      font-size: 0.85rem;
+    }
+    .history-table th, .history-table td {
+      border: 1px solid #ddd;
+      padding: 8px 4px;
+      text-align: center;
+    }
+    .history-table th { background: #f5f5f5; }
+    
+    /* 判定カラー */
+    .cell-match { background-color: #c8e6c9; color: #2e7d32; font-weight: bold; } /* 🟩 */
+    .cell-differ { background-color: #ffcdd2; color: #c62828; font-weight: bold; } /* 🟥 */
+    .cell-up { background-color: #fff9c4; color: #f57f17; font-weight: bold; }    /* ⬆ */
+    .cell-down { background-color: #b3e5fc; color: #0d47a1; font-weight: bold; }  /* ⬇ */
 
     .hidden { display: none !important; }
   </style>
@@ -166,7 +188,7 @@
       <p>表示されたコードを共有してください</p>
       <div class="vlobby-code-box"><span id="vs-my-code">----</span></div>
       <button id="vs-create" class="lobby-btn">コード生成</button>
-      <div id="status-msg" style="color:#e65100; margin-top:8px; font-size:0.85rem;"></div>
+      <div id="status-msg" style="color:#e65100; margin-top:8px; font-weight:bold;"></div>
     </section>
 
     <div class="lobby-separator"><span>OR</span></div>
@@ -179,25 +201,43 @@
     </section>
   </div>
 
-  <!-- クイズ対戦画面 -->
+  <!-- 対戦ゲーム画面 -->
   <div id="quiz-screen" class="quiz-card hidden">
     <div class="score-board">
       <div id="host-score-display">ホスト: 0点</div>
       <div id="guest-score-display">ゲスト: 0点</div>
     </div>
-    <h3 id="quiz-title">問題</h3>
-    <p id="quiz-hint" style="font-size: 1.1rem; font-weight: bold; color: #333;"></p>
     
-    <div class="quiz-area">
-      <button class="choice-btn" id="btn-choice0">1. </button>
-      <button class="choice-btn" id="btn-choice1">2. </button>
-      <button class="choice-btn" id="btn-choice2">3. </button>
-      <button class="choice-btn" id="btn-choice3">4. </button>
+    <h3 style="color: #2e7d32; margin: 5px 0;">正解のポケモンを推理せよ！</h3>
+    <p style="color: #555;">タイプ、世代、高さ、重さをヒントに絞り込もう。</p>
+
+    <!-- 推理入力エリア -->
+    <div class="game-input-area">
+      <input type="text" id="pokemon-guess-input" placeholder="ポケモン名を入力 (例: ピカチュウ)">
+      <button id="guess-submit-btn" class="game-btn">送信</button>
     </div>
-    <div id="game-status-msg" style="margin-top: 15px; font-weight: bold; color: #2e7d32;"></div>
+
+    <!-- 自分の判定履歴 -->
+    <h4>あなたの推測履歴</h4>
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>名前</th>
+          <th>タイプ</th>
+          <th>世代</th>
+          <th>高さ</th>
+          <th>重さ</th>
+        </tr>
+      </thead>
+      <tbody id="history-log">
+        <!-- ここに推測結果が追加されていく -->
+      </tbody>
+    </table>
+
+    <div id="game-status-msg" style="margin-top: 20px; font-weight: bold; font-size: 1.1rem; color: #d32f2f;"></div>
   </div>
 
-  <!-- Firebase v9 Compat版 -->
+  <!-- Firebase v9 Compat版 ライブラリ -->
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
   <script>
