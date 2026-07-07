@@ -20,7 +20,20 @@
       max-width: 400px;
       width: 90%;
       text-align: center;
-      margin-top: 50px;
+      margin-top: 30px;
+    }
+
+    /* ポケモンイラストの配置エリア */
+    .pokemon-banner {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+    .pokemon-banner img {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
     }
 
     /* ヘッダーデザイン */
@@ -58,7 +71,7 @@
       transition: background 0.2s;
     }
     .main-input {
-      font-size: 1.5rem;
+      font-size: 1.8rem;
       padding: 10px;
       width: 100%;
       box-sizing: border-box;
@@ -66,9 +79,10 @@
       border: 2px solid #ddd;
       border-radius: 6px;
       margin-bottom: 15px;
+      letter-spacing: 4px;
     }
 
-    /* 【変更】ルームを作成（ホスト側：黄色系） */
+    /* ルームを作成（ホスト側：黄色系） */
     .vlobby-create {
       background-color: #fffde7; /* 淡い黄色の背景 */
       padding: 20px;
@@ -80,7 +94,7 @@
     }
     .vlobby-code-box {
       margin: 15px 0;
-      padding: 15px;
+      padding: 10px;
       background: #fff;
       border: 2px dashed #f57f17;
       border-radius: 8px;
@@ -88,7 +102,7 @@
     #vs-my-code {
       font-size: 2.5rem;
       font-weight: bold;
-      letter-spacing: 4px;
+      letter-spacing: 6px;
       color: #f57f17;
     }
     #vs-create {
@@ -99,7 +113,7 @@
       background: #e65100;
     }
 
-    /* 【変更】区切り（OR） */
+    /* 区切り（OR） */
     .lobby-separator {
       margin: 20px 0;
       position: relative;
@@ -125,7 +139,7 @@
       z-index: 2;
     }
 
-    /* 【変更】ルームに参加（ゲスト側：青色系） */
+    /* ルームに参加（ゲスト側：青色系） */
     .vlobby-join {
       background-color: #e3f2fd; /* 淡い青色の背景 */
       padding: 20px;
@@ -156,13 +170,18 @@
     /* クイズ対戦画面（既存のスタイルは省略・維持） */
     .quiz-area { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
     .hidden { display: none !important; }
-    /* ... (その他のゲーム画面用スタイルは元のファイルのまま維持してください) ... */
   </style>
 
   <!-- 中略（Firebaseスクリプトなど） -->
 
   <!-- ロビー画面 HTML -->
   <div id="lobby-screen" class="vlobby-card">
+    <!-- ポケモンイラストバナー -->
+    <div class="pokemon-banner">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Pikachu">
+      <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" alt="Eevee">
+    </div>
+
     <!-- 1. ヘッダー -->
     <div class="lobby-header">
       <h2>対戦モード</h2>
@@ -174,7 +193,8 @@
       <h4>ルームを作成</h4>
       <p>表示されたコードを共有してください</p>
       <div class="vlobby-code-box">
-        <span id="vs-my-code">------</span>
+        <!-- 3桁表示用に初期状態を「---」に変更 -->
+        <span id="vs-my-code">---</span>
       </div>
       <button id="vs-create" class="lobby-btn">コード生成</button>
       <div id="status-msg" style="color:#e65100;"></div>
@@ -188,8 +208,9 @@
     <!-- 4. ルームに参加（ゲスト側：青色セクション） -->
     <section class="vlobby-panel vlobby-join">
       <h4>ルームに参加</h4>
-      <p>コード（数字6桁）を入力してください</p>
-      <input id="vs-code" class="main-input" inputmode="numeric" maxlength="6" placeholder="123456">
+      <p>コード（数字3桁）を入力してください</p>
+      <!-- 3桁入力用に maxlength を 3、placeholder を 123 に変更 -->
+      <input id="vs-code" class="main-input" inputmode="numeric" maxlength="3" placeholder="123">
       <button id="vs-join" class="lobby-btn">参加する</button>
     </section>
   </div>
