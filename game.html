@@ -5,10 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ポケゲサ - 対戦ロビー</title>
   <style>
-    /* ⑦ 全体的なデザイン・落ち着いた配色（淡い緑色の背景） */
     body {
       font-family: 'Helvetica Neue', Arial, sans-serif;
-      background-color: #e8f5e9; /* 淡い緑色の背景 */
+      background-color: #e8f5e9;
       margin: 0;
       padding: 10px;
       display: flex;
@@ -17,8 +16,7 @@
       min-height: 100vh;
     }
 
-    /* ロビー画面全体 */
-    .vlobby-card {
+    .vlobby-card, .quiz-card {
       background: #fff;
       padding: 30px;
       border-radius: 12px;
@@ -29,7 +27,6 @@
       margin-top: 30px;
     }
 
-    /* ポケモンイラストの配置エリア */
     .pokemon-banner {
       display: flex;
       justify-content: center;
@@ -42,7 +39,6 @@
       object-fit: contain;
     }
 
-    /* ヘッダーデザイン */
     .lobby-header h2 {
       color: #2e7d32;
       margin: 0 0 5px 0;
@@ -54,18 +50,10 @@
       margin: 0 0 20px 0;
     }
 
-    h4 {
-      margin: 10px 0 5px 0;
-      font-size: 1.2rem;
-    }
-    p {
-      color: #666;
-      font-size: 0.85rem;
-      margin: 5px 0 15px 0;
-    }
+    h4 { margin: 10px 0 5px 0; font-size: 1.2rem; }
+    p { color: #666; font-size: 0.85rem; margin: 5px 0 15px 0; }
 
-    /* 共通ボタン・入力欄 */
-    .lobby-btn {
+    .lobby-btn, .choice-btn {
       padding: 12px;
       font-size: 1rem;
       font-weight: bold;
@@ -88,16 +76,13 @@
       letter-spacing: 4px;
     }
 
-    /* ルームを作成（ホスト側：黄色系） */
     .vlobby-create {
-      background-color: #fffde7; /* 淡い黄色の背景 */
+      background-color: #fffde7;
       padding: 20px;
       border-radius: 8px;
       border: 1px solid #fff59d;
     }
-    .vlobby-create h4 {
-      color: #f57f17;
-    }
+    .vlobby-create h4 { color: #f57f17; }
     .vlobby-code-box {
       margin: 15px 0;
       padding: 10px;
@@ -111,114 +96,81 @@
       letter-spacing: 6px;
       color: #f57f17;
     }
-    #vs-create {
-      background: #f57f17;
-      color: white;
-    }
-    #vs-create:hover {
-      background: #e65100;
-    }
+    #vs-create { background: #f57f17; color: white; }
+    #vs-create:hover { background: #e65100; }
 
-    /* 区切り（OR） */
     .lobby-separator {
-      margin: 20px 0;
-      position: relative;
-      text-align: center;
+      margin: 20px 0; position: relative; text-align: center;
     }
     .lobby-separator::before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 0;
-      right: 0;
-      height: 1px;
-      background: #ccc;
-      z-index: 1;
+      content: ""; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: #ccc; z-index: 1;
     }
     .lobby-separator span {
-      background: #fff;
-      padding: 0 15px;
-      color: #777;
-      font-weight: bold;
-      font-size: 0.9rem;
-      position: relative;
-      z-index: 2;
+      background: #fff; padding: 0 15px; color: #777; font-weight: bold; font-size: 0.9rem; position: relative; z-index: 2;
     }
 
-    /* ルームに参加（ゲスト側：青色系） */
     .vlobby-join {
-      background-color: #e3f2fd; /* 淡い青色の背景 */
+      background-color: #e3f2fd;
       padding: 20px;
       border-radius: 8px;
       border: 1px solid #90caf9;
     }
-    .vlobby-join h4 {
-      color: #0d47a1;
-    }
-    .vlobby-join .main-input:focus {
-      border-color: #1e88e5;
-      outline: none;
-    }
-    #vs-join {
-      background: #1e88e5;
-      color: white;
-    }
-    #vs-join:hover {
-      background: #1565c0;
-    }
+    .vlobby-join h4 { color: #0d47a1; }
+    #vs-join { background: #1e88e5; color: white; }
+    #vs-join:hover { background: #1565c0; }
 
-    #status-msg {
-      font-weight: bold;
-      margin-top: 8px;
-      font-size: 0.85rem;
-    }
-
-    /* クイズ対戦画面（デフォルトは非表示） */
+    /* クイズ対戦画面のスタイル */
     .quiz-area {
-      width: 100%;
-      max-width: 600px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 15px;
+      margin-top: 15px;
     }
-    .hidden {
-      display: none !important;
+    .choice-btn {
+      background: #f5f5f5;
+      border: 2px solid #ccc;
+      margin-bottom: 10px;
+      text-align: left;
+      padding-left: 20px;
     }
+    .choice-btn:hover { background: #e0e0e0; }
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <!-- ロビー画面 HTML -->
+  <!-- ロビー画面 -->
   <div id="lobby-screen" class="vlobby-card">
-    <!-- ポケモンイラストバナー -->
     <div class="pokemon-banner">
       <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" alt="Pikachu">
       <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" alt="Eevee">
     </div>
 
-    <!-- 1. ヘッダー -->
     <div class="lobby-header">
       <h2>対戦モード</h2>
       <div class="subtitle"><strong>ルームを作成 or ルームに参加</strong></div>
     </div>
 
-    <!-- 2. ルームを作成（ホスト側：黄色セクション） -->
     <section class="vlobby-panel vlobby-create">
       <h4>ルームを作成</h4>
       <p>表示されたコードを共有してください</p>
-      <div class="vlobby-code-box">
-        <span id="vs-my-code">----</span>
-      </div>
+      <div class="vlobby-code-box"><span id="vs-my-code">----</span></div>
       <button id="vs-create" class="lobby-btn">コード生成</button>
-      <div id="status-msg" style="color:#e65100;"></div>
+      <div id="status-msg" style="color:#e65100; margin-top:8px; font-size:0.85rem;"></div>
     </section>
 
-    <!-- 3. 区切り（OR） -->
-    <div class="lobby-separator">
-      <span>OR</span>
-    </div>
+    <div class="lobby-separator"><span>OR</span></div>
 
-    <!-- 4. ルームに参加（ゲスト側：青色セクション） -->
     <section class="vlobby-panel vlobby-join">
       <h4>ルームに参加</h4>
       <p>コード（数字4桁）を入力してください</p>
@@ -227,16 +179,27 @@
     </section>
   </div>
 
-  <!-- クイズ対戦画面エリア（ゲーム開始後に JavaScript で hidden を外して表示） -->
-  <div id="quiz-screen" class="quiz-area hidden">
-    <!-- ここに既存のクイズ画面の要素があれば入ります -->
+  <!-- クイズ対戦画面 -->
+  <div id="quiz-screen" class="quiz-card hidden">
+    <div class="score-board">
+      <div id="host-score-display">ホスト: 0点</div>
+      <div id="guest-score-display">ゲスト: 0点</div>
+    </div>
+    <h3 id="quiz-title">問題</h3>
+    <p id="quiz-hint" style="font-size: 1.1rem; font-weight: bold; color: #333;"></p>
+    
+    <div class="quiz-area">
+      <button class="choice-btn" id="btn-choice0">1. </button>
+      <button class="choice-btn" id="btn-choice1">2. </button>
+      <button class="choice-btn" id="btn-choice2">3. </button>
+      <button class="choice-btn" id="btn-choice3">4. </button>
+    </div>
+    <div id="game-status-msg" style="margin-top: 15px; font-weight: bold; color: #2e7d32;"></div>
   </div>
 
-  <!-- Firebase v9 Compat版 ライブラリの読み込み -->
+  <!-- Firebase v9 Compat版 -->
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-
-  <!-- 【修正】Firebaseの初期化設定（本物のConfigを直接埋め込み） -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAt9sD_1d2oiV7ezuwU8fcfdh5sCGft9x0",
@@ -248,13 +211,8 @@
       appId: "1:666509842476:web:5d120f90f615bec0719989",
       measurementId: "G-VBQ82PFLF3"
     };
-
-    // Firebaseの初期化を実行
     firebase.initializeApp(firebaseConfig);
   </script>
-
-  <!-- モジュール版（import〜）のJSは読み込まず、Compat版で動くgame.jsのみを読み込みます -->
   <script src="game.js"></script>
-
 </body>
 </html>
