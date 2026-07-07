@@ -4,12 +4,15 @@ window.addEventListener('DOMContentLoaded', () => {
   const codeInput = document.getElementById('vs-code');
   const statusMsg = document.getElementById('status-msg');
 
-  // 仮の問題データ（本来はAPI等から取得するものを同期用に定義）
-  const sampleQuestion = {
-    hint: "たかさ: 0.4m / おもさ: 6.0kg / でんきタイプ の ねずみポケモン は？",
-    choices: ["ピカチュウ", "イーブイ", "ヒトカゲ", "ゼニガメ"],
-    answerIndex: 0 // ピカチュウが正解
+  // --- 簡易版ポケモンデータマスター (PokeAPI等のデータの代わり) ---
+  const pokemonDatabase = {
+    "ピカチュウ": { name: "ピカチュウ", type: "でんき", gen: 1, height: 0.4, weight: 6.0 },
+    "イーブイ": { name: "イーブイ", type: "ノーマル", gen: 1, height: 0.3, weight: 6.5 },
+    "フシギダネ": { name: "フシギダネ", type: "くさ", gen: 1, height: 0.7, weight: 6.9 },
+    "ルカリオ": { name: "ルカリオ", type: "かくとう", gen: 4, height: 1.2, weight: 54.0 },
+    "ゲッコウガ": { name: "ゲッコウガ", type: "みず", gen: 6, height: 1.5, weight: 40.0 }
   };
+  const pokemonNames = Object.keys(pokemonDatabase);
 
   function getDatabase() {
     if (typeof firebase !== 'undefined') return firebase.database();
@@ -28,24 +31,23 @@ window.addEventListener('DOMContentLoaded', () => {
 
       const db = getDatabase();
       if (db) {
+        // ランダムに正解ポケモンを1頭選出
+        const randomName = pokemonNames[Math.floor(Math.random() * pokemonNames.length)];
+        const answerPokemon = pokemonDatabase[randomName];
+
         const roomRef = db.ref('rooms/' + generatedCode);
-        // 設計通りの初期データ構造を作成
         roomRef.set({
           status: 'waiting',
           scores: { host: 0, guest: 0 },
-          game: {
-            hint: sampleQuestion.hint,
-            choices: sampleQuestion.choices,
-            answerIndex: sampleQuestion.answerIndex,
-            winner: "" // 先に正解したプレイヤーを記録する用
-          },
+          answer: answerPokemon, // お互いが共通で追う正解データ
+          winner: "",
           createdAt: firebase.database.ServerValue.TIMESTAMP
         });
 
         roomRef.on('value', (snapshot) => {
           const roomData = snapshot.val();
           if (roomData && roomData.status === 'playing') {
-            roomRef.off(); // ロビー用の監視を解除
+            roomRef.off();
             startGame(generatedCode, 'host');
           }
         });
@@ -89,7 +91,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================
-  // 3. 対戦ゲーム本番処理（同期・スコア管理）
+  // 3. 対戦ゲーム本番処理（Guesserロジック・同期）
   // ==========================================
   function startGame(roomCode, role) {
     // 画面切り替え
@@ -102,57 +104,131 @@ window.addEventListener('DOMContentLoaded', () => {
     if (!db) return;
 
     const roomRef = db.ref('rooms/' + roomCode);
+    let currentAnswer = null;
 
-    // Firebaseから問題データとスコアをリアルタイム監視
+    // Firebaseデータの常時同期
     roomRef.on('value', (snapshot) => {
       const roomData = snapshot.val();
       if (!roomData) return;
 
-      // 1. スコアボードの更新
+      currentAnswer = roomData.answer;
+
+      // ① スコア表示の同期
       document.getElementById('host-score-display').textContent = `ホスト: ${roomData.scores.host}点`;
       document.getElementById('guest-score-display').textContent = `ゲスト: ${roomData.scores.guest}点`;
 
-      // 2. 問題の表示
-      document.getElementById('quiz-hint').textContent = roomData.game.hint;
-      roomData.game.choices.forEach((choice, index) => {
-        const btn = document.getElementById(`btn-choice${index}`);
-        if (btn) {
-          btn.textContent = `${index + 1}. ${choice}`;
-          
-          // ボタンクリック時の正誤判定イベントを設定
-          btn.onclick = () => {
-            if (index === roomData.game.answerIndex) {
-              // 正解した場合、Firebaseのwinnerに自分がまだ誰も書いていなければ書き込む（早い者勝ち判定）
-              roomRef.child('game/winner').transaction((currentWinner) => {
-                if (currentWinner === "") {
-                  return role; // 自分が勝者
-                }
-                return currentWinner; // すでに誰かが正解していたらそのまま
-              }, (error, committed, snapshot) => {
-                if (committed) {
-                  // スコアを加算
-                  roomRef.child(`scores/${role}`).transaction((score) => (score || 0) + 10);
-                  alert("正解！あなたが先に当てました！(+10点)");
-                }
-              });
-            } else {
-              alert("不正解！もう一度考えてみよう！");
-            }
-          };
-        }
-      });
-
-      // 3. 勝敗判定（どちらかが正解した瞬間の通知表示）
-      const gameStatusMsg = document.getElementById('game-status-msg');
-      if (roomData.game.winner) {
-        if (roomData.game.winner === role) {
-          gameStatusMsg.textContent = "あなたが先取しました！";
+      // ② 勝敗が決まった場合の処理
+      if (roomData.winner) {
+        const statusMsgArea = document.getElementById('game-status-msg');
+        if (roomData.winner === role) {
+          statusMsgArea.textContent = `🎉 あなたの勝ち！ 正解は【${currentAnswer.name}】でした！`;
         } else {
-          gameStatusMsg.textContent = "相手に先を越されました！";
+          statusMsgArea.textContent = `❌ 相手が先に正解しました！ 正解は【${currentAnswer.name}】でした。`;
         }
-      } else {
-        gameStatusMsg.textContent = "早く正解をクリックしよう！";
+        document.getElementById('guess-submit-btn').disabled = true;
       }
     });
+
+    // 自分の入力送信イベント
+    const submitBtn = document.getElementById('guess-submit-btn');
+    const guessInput = document.getElementById('pokemon-guess-input');
+    const historyLog = document.getElementById('history-log');
+
+    if (submitBtn && guessInput) {
+      submitBtn.onclick = () => {
+        const userInput = guessInput.value.trim();
+        if (!userInput) return;
+
+        // マスターデータに存在するかチェック
+        if (!pokemonDatabase[userInput]) {
+          alert("登録されているポケモン名を入力してください。\n(例: ピカチュウ, イーブイ, フシギダネ, ルカリオ, ゲッコウガ)");
+          return;
+        }
+
+        const userPokemon = pokemonDatabase[userInput];
+        
+        // --- ⑤ Poke Guesserの判定アルゴリズムをシミュレート ---
+        const tr = document.createElement('tr');
+
+        // 名前セル
+        const tdName = document.createElement('td');
+        tdName.textContent = userPokemon.name;
+        tr.appendChild(tdName);
+
+        // タイプ判定 (一致: 🟩 , 不一致: 🟥)
+        const tdType = document.createElement('td');
+        if (userPokemon.type === currentAnswer.type) {
+          tdType.textContent = "🟩 " + userPokemon.type;
+          tdType.className = "cell-match";
+        } else {
+          tdType.textContent = "🟥 " + userPokemon.type;
+          tdType.className = "cell-differ";
+        }
+        tr.appendChild(tdType);
+
+        // 世代判定 (一致: 🟩 , ⬆ , ⬇)
+        const tdGen = document.createElement('td');
+        if (userPokemon.gen === currentAnswer.gen) {
+          tdGen.textContent = "🟩 " + userPokemon.gen + "世";
+          tdGen.className = "cell-match";
+        } else if (userPokemon.gen < currentAnswer.gen) {
+          tdGen.textContent = "⬆ " + userPokemon.gen + "世";
+          tdGen.className = "cell-up";
+        } else {
+          tdGen.textContent = "⬇ " + userPokemon.gen + "世";
+          tdGen.className = "cell-down";
+        }
+        tr.appendChild(tdGen);
+
+        // 高さ判定
+        const tdHeight = document.createElement('td');
+        if (userPokemon.height === currentAnswer.height) {
+          tdHeight.textContent = "🟩 " + userPokemon.height + "m";
+          tdHeight.className = "cell-match";
+        } else if (userPokemon.height < currentAnswer.height) {
+          tdHeight.textContent = "⬆ " + userPokemon.height + "m";
+          tdHeight.className = "cell-up";
+        } else {
+          tdHeight.textContent = "⬇ " + userPokemon.height + "m";
+          tdHeight.className = "cell-down";
+        }
+        tr.appendChild(tdHeight);
+
+        // 重さ判定
+        const tdWeight = document.createElement('td');
+        if (userPokemon.weight === currentAnswer.weight) {
+          tdWeight.textContent = "🟩 " + userPokemon.weight + "kg";
+          tdWeight.className = "cell-match";
+        } else if (userPokemon.weight < currentAnswer.weight) {
+          tdWeight.textContent = "⬆ " + userPokemon.weight + "kg";
+          tdWeight.className = "cell-up";
+        } else {
+          tdWeight.textContent = "⬇ " + userPokemon.weight + "kg";
+          tdWeight.className = "cell-down";
+        }
+        tr.appendChild(tdWeight);
+
+        // 履歴の先頭に追加
+        if (historyLog) historyLog.insertBefore(tr, historyLog.firstChild);
+
+        // ドンピシャ正解（完全一致）した場合のトランザクション（早い者勝ち勝敗決定）
+        if (userPokemon.name === currentAnswer.name) {
+          roomRef.child('winner').transaction((currentWinner) => {
+            if (currentWinner === "") {
+              return role; // 自分が最初の勝者
+            }
+            return currentWinner; 
+          }, (error, committed, snapshot) => {
+            if (committed) {
+              // 勝った側のスコアに10点を加算
+              roomRef.child(`scores/${role}`).transaction((score) => (score || 0) + 10);
+            }
+          });
+        }
+
+        // 入力欄をクリア
+        guessInput.value = "";
+      };
+    }
   }
 });
